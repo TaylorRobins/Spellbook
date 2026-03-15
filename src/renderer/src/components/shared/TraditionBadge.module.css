@@ -1,0 +1,33 @@
+.badge {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.arcane {
+  color: var(--color-arcane);
+  background: var(--color-arcane-bg);
+  border: 1px solid var(--color-arcane);
+}
+
+.divine {
+  color: var(--color-divine);
+  background: var(--color-divine-bg);
+  border: 1px solid var(--color-divine);
+}
+
+.occult {
+  color: var(--color-occult);
+  background: var(--color-occult-bg);
+  border: 1px solid var(--color-occult);
+}
+
+.primal {
+  color: var(--color-primal);
+  background: var(--color-primal-bg);
+  border: 1px solid var(--color-primal);
+}

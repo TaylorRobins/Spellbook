@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(node -e \":*)",
+      "Bash(node scripts/import-spells.js)",
+      "Bash(node -e \"console.log\\(process.versions.modules\\)\")",
+      "Bash(node -e \"const { DatabaseSync } = require\\(''node:sqlite''\\); const db = new DatabaseSync\\('':memory:''\\); db.exec\\(''CREATE TABLE t \\(x\\)''\\); console.log\\(''node:sqlite works''\\)\")",
+      "Bash(node --experimental-sqlite -e \":*)",
+      "Bash(node --no-warnings -e \":*)",
+      "Bash(node --no-warnings scripts/import-spells.js)",
+      "Bash(node --no-warnings scripts/import-spells.js --update)",
+      "Bash(\"c:\\\\Users\\\\robin\\\\Claude\\\\node_modules\\\\electron\\\\dist\\\\electron.exe\" --version)",
+      "Bash(taskkill /F /IM electron.exe /T)",
+      "Bash(npm install:*)",
+      "Bash(taskkill /F /IM Electron.exe /T)",
+      "Bash(cmd /c \"taskkill /F /IM electron.exe /T\")",
+      "Bash(node scripts/install-better-sqlite3.js)",
+      "Bash(node -e \"require\\(''c:/Users/robin/Claude/node_modules/better-sqlite3''\\); console.log\\(''loads ok''\\)\")",
+      "Bash(ls \"c:\\\\Users\\\\robin\\\\Claude\\\\node_modules\\\\better-sqlite3\\\\build\\\\Release\"\" 2>/dev/null && echo \"---\" || echo \"dir missing \")",
+      "Bash(tar -tzf \"c:/Users/robin/Claude/node_modules/better-sqlite3/build/Release/prebuilt.tar.gz\")",
+      "Bash(node \"c:/Users/robin/Claude/scripts/download-sqlite3.js\")",
+      "Bash(node scripts/fix-sqlite3.js)",
+      "Bash(node \"c:/Users/robin/Claude/node_modules/electron/install.js\")",
+      "Bash(\"c:/Users/robin/Claude/node_modules/electron/dist/electron.exe\" --version)",
+      "Bash(node -e \"const pkg = require\\(''''c:/Users/robin/Claude/node_modules/electron/package.json''''\\); console.log\\(''''npm pkg version:'''', pkg.version\\); console.log\\(''''download version:'''', require\\(''''c:/Users/robin/Claude/node_modules/electron/node_modules/@electron/get/dist/cjs/index.js''''\\) ? ''''found'''' : ''''not found''''\\)\")",
+      "Bash(node -e \"const p = require\\(''c:/Users/robin/Claude/node_modules/electron/package.json''\\); console.log\\(JSON.stringify\\({version: p.version, main: p.main, exports: p.exports}, null, 2\\)\\)\")",
+      "Bash(cmd /c \"taskkill /F /IM electron.exe /T 2>&1\")",
+      "Bash(sed -n '1,10p' \"c:/Users/robin/Claude/out/main/index.js\")",
+      "Bash(sed -n '537,545p' \"c:/Users/robin/Claude/out/main/index.js\")",
+      "Bash(powershell.exe -Command \"\\(Get-Item ''C:\\\\Users\\\\robin\\\\Claude\\\\node_modules\\\\electron\\\\dist\\\\electron.exe''\\).VersionInfo | Select-Object FileVersion, ProductVersion, ProductName | Format-List\")",
+      "Bash(echo \"ELECTRON_RUN_AS_NODE=$ELECTRON_RUN_AS_NODE\")",
+      "Bash(unset ELECTRON_RUN_AS_NODE)",
+      "Bash(taskkill /F /IM node.exe /T)",
+      "Bash(ls -lh \"c:\\\\Users\\\\robin\\\\Claude\\\\dist/\"*.exe)"
+    ]
+  }
+}

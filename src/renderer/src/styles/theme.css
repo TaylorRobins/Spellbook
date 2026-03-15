@@ -1,0 +1,52 @@
+:root {
+  /* Backgrounds — dark parchment */
+  --color-bg-primary: #1a1410;
+  --color-bg-secondary: #211b14;
+  --color-bg-tertiary: #2a2018;
+  --color-bg-hover: #342818;
+  --color-bg-selected: #3e3020;
+  --color-bg-card: #251e15;
+
+  /* Gold accents */
+  --color-accent-gold: #c9a84c;
+  --color-accent-gold-dim: #7a6230;
+  --color-accent-gold-bright: #f0d080;
+  --color-accent-gold-glow: rgba(201, 168, 76, 0.15);
+
+  /* Text — warm parchment tones */
+  --color-text-primary: #e8d8b0;
+  --color-text-secondary: #a08865;
+  --color-text-muted: #6a5540;
+  --color-text-heading: #f0d080;
+
+  /* Traditions */
+  --color-arcane: #9b6fd4;
+  --color-arcane-bg: rgba(155, 111, 212, 0.15);
+  --color-divine: #d4a835;
+  --color-divine-bg: rgba(212, 168, 53, 0.15);
+  --color-occult: #4db8a8;
+  --color-occult-bg: rgba(77, 184, 168, 0.15);
+  --color-primal: #5ab34d;
+  --color-primal-bg: rgba(90, 179, 77, 0.15);
+
+  /* Schools — left-border colors for spell cards */
+  --color-abjuration: #4a9fd4;
+  --color-conjuration: #9b6fd4;
+  --color-divination: #d4c84a;
+  --color-enchantment: #d47a9b;
+  --color-evocation: #d46a4a;
+  --color-illusion: #6ad4b8;
+  --color-necromancy: #6ad47a;
+  --color-transmutation: #d4a84a;
+
+  /* Layout */
+  --sidebar-width: 220px;
+  --detail-width: 400px;
+  --searchbar-height: 54px;
+  --border-radius: 4px;
+
+  /* Borders */
+  --border-subtle: 1px solid #3a2e1e;
+  --border-ornate: 1px solid var(--color-accent-gold-dim);
+  --border-bright: 1px solid var(--color-accent-gold);
+}

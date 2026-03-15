@@ -1,0 +1,27 @@
+.pip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  background: var(--color-bg-hover);
+  border: var(--border-subtle);
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+.cantrip {
+  color: var(--color-accent-gold);
+  border-color: var(--color-accent-gold-dim);
+  background: var(--color-accent-gold-glow);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0 5px;
+  min-width: auto;
+}

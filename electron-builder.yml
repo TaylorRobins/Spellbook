@@ -1,0 +1,31 @@
+appId: com.spellbook.app
+productName: Spellbook
+copyright: Copyright © 2026
+
+npmRebuild: false
+
+directories:
+  buildResources: resources
+  output: dist
+
+files:
+  - out/**/*
+  - package.json
+
+asarUnpack:
+  - node_modules/better-sqlite3/**/*
+  - node_modules/bindings/**/*
+  - node_modules/file-uri-to-path/**/*
+
+win:
+  target: nsis
+
+mac:
+  target: dmg
+
+linux:
+  target: AppImage
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true

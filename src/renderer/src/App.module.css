@@ -1,0 +1,21 @@
+.appShell {
+  display: flex;
+  height: 100%;
+  background: var(--color-bg-primary);
+  overflow: hidden;
+}
+
+.mainPane {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.contentArea {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  border-top: var(--border-ornate);
+}

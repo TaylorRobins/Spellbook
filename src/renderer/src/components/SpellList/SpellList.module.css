@@ -1,0 +1,88 @@
+.list {
+  flex: 1;
+  overflow-y: auto;
+  min-width: 280px;
+  border-right: var(--border-ornate);
+}
+
+.count {
+  padding: 6px 14px;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: var(--border-subtle);
+  background: var(--color-bg-secondary);
+}
+
+/* Skeleton loading */
+.skeleton {
+  display: flex;
+  align-items: stretch;
+  border-bottom: var(--border-subtle);
+  height: 62px;
+}
+
+.skeletonBar {
+  width: 3px;
+  background: var(--color-bg-hover);
+}
+
+.skeletonBody {
+  flex: 1;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonName {
+  height: 14px;
+  width: 60%;
+  background: var(--color-bg-hover);
+  border-radius: 3px;
+  animation: shimmer 1.4s infinite;
+}
+
+.skeletonMeta {
+  height: 10px;
+  width: 40%;
+  background: var(--color-bg-hover);
+  border-radius: 3px;
+  animation: shimmer 1.4s infinite 0.2s;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* Empty state */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  padding: 24px;
+  text-align: center;
+}
+
+.emptyRune {
+  font-size: 28px;
+  color: var(--color-accent-gold-dim);
+  margin-bottom: 12px;
+}
+
+.emptyTitle {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+}
+
+.emptyText {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  line-height: 1.6;
+}

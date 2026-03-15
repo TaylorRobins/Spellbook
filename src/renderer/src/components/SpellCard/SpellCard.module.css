@@ -1,0 +1,115 @@
+.card {
+  display: flex;
+  align-items: stretch;
+  background: var(--color-bg-card);
+  border-bottom: var(--border-subtle);
+  cursor: pointer;
+  transition: background 0.12s;
+  user-select: none;
+}
+
+.card:hover {
+  background: var(--color-bg-hover);
+}
+
+.card.selected {
+  background: var(--color-bg-selected);
+}
+
+.schoolBar {
+  width: 3px;
+  flex-shrink: 0;
+  background: var(--school-color, var(--color-accent-gold-dim));
+}
+
+.body {
+  flex: 1;
+  padding: 9px 12px;
+  min-width: 0;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.name {
+  font-size: 14px;
+  color: var(--color-text-primary);
+  font-weight: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.card.selected .name {
+  color: var(--color-accent-gold-bright);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.bottomRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.traditions {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.school {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+
+.favoriteBtn {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  padding: 2px 3px;
+  transition: color 0.15s, transform 0.1s;
+  flex-shrink: 0;
+}
+
+.favoriteBtn:hover {
+  color: var(--color-accent-gold);
+  transform: scale(1.15);
+}
+
+.favoriteBtn.favorited {
+  color: var(--color-accent-gold);
+}
+
+.spellbookBtn {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  padding: 2px 3px;
+  transition: color 0.15s, transform 0.1s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.spellbookBtn:hover {
+  color: var(--color-accent-gold);
+  transform: scale(1.15);
+}
+
+.spellbookBtn.inSpellbook {
+  color: var(--color-accent-gold);
+}
