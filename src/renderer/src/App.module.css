@@ -44,3 +44,51 @@
   flex: 1;
   overflow: hidden;
 }
+
+.updateBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  height: 36px;
+  flex-shrink: 0;
+  background: rgba(201, 168, 76, 0.12);
+  border-bottom: 1px solid var(--color-accent-gold-dim);
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--color-accent-gold-bright);
+}
+
+.updateBannerText {
+  flex: 1;
+}
+
+.updateBannerBtn {
+  padding: 3px 12px;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(201, 168, 76, 0.15);
+  border: 1px solid var(--color-accent-gold);
+  color: var(--color-accent-gold-bright);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.updateBannerBtn:hover {
+  background: rgba(201, 168, 76, 0.28);
+}
+
+.updateBannerDismiss {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  transition: color 0.15s;
+  padding: 2px 4px;
+}
+
+.updateBannerDismiss:hover {
+  color: var(--color-text-secondary);
+}

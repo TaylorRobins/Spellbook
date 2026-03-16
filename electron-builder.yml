@@ -2,6 +2,11 @@ appId: com.spellbook.app
 productName: Spellbook
 copyright: Copyright © 2026
 
+publish:
+  provider: github
+  owner: TaylorRobins
+  repo: Spellbook
+
 npmRebuild: false
 
 directories:

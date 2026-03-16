@@ -1,0 +1,99 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #1c1510;
+  border: 1px solid var(--color-accent-gold-dim);
+  border-radius: 4px;
+  width: 360px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.8);
+}
+
+.header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-accent-gold-dim);
+  background: linear-gradient(180deg, rgba(201, 168, 76, 0.08) 0%, transparent 100%);
+}
+
+.title {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-gold-bright);
+}
+
+.body {
+  padding: 28px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 72px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border: 2px solid var(--color-accent-gold-dim);
+  border-top-color: var(--color-accent-gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.statusText {
+  font-family: 'Crimson Text', Georgia, serif;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.errorText {
+  font-family: 'Crimson Text', Georgia, serif;
+  font-size: 14px;
+  color: #e57373;
+}
+
+.footer {
+  padding: 12px 18px;
+  border-top: 1px solid var(--color-accent-gold-dim);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.closeBtn {
+  padding: 6px 20px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid var(--color-accent-gold-dim);
+  color: var(--color-accent-gold);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.closeBtn:hover:not(:disabled) {
+  background: rgba(201, 168, 76, 0.2);
+  color: var(--color-accent-gold-bright);
+}
+
+.closeBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

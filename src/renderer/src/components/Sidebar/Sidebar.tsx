@@ -13,6 +13,7 @@ interface SidebarProps {
   onNewCharacter: () => void
   onEditCharacter: () => void
   onDeleteCharacter: (id: number) => void
+  onOpenUpdateModal: () => void
 }
 
 const LEVELS = Array.from({ length: 11 }, (_, i) => i)
@@ -38,7 +39,8 @@ function isActive(view: SidebarView, check: SidebarView): boolean {
 export function Sidebar({
   activeView, onViewChange,
   characters, activeCharacterId, onCharacterChange,
-  onNewCharacter, onEditCharacter, onDeleteCharacter
+  onNewCharacter, onEditCharacter, onDeleteCharacter,
+  onOpenUpdateModal
 }: SidebarProps): JSX.Element {
   return (
     <aside className={styles.sidebar}>
@@ -120,6 +122,15 @@ export function Sidebar({
           Favorites
         </button>
       </nav>
+
+      <div className={styles.tools}>
+        <button className={styles.toolBtn} onClick={onOpenUpdateModal} title="Download latest spells from Foundry VTT">
+          ↻ Update Spell Database
+        </button>
+        <button className={styles.toolBtn} onClick={() => window.api.checkForAppUpdate()} title="Check GitHub for a new app version">
+          ⬆ Check for App Updates
+        </button>
+      </div>
 
       <div className={styles.wizard} aria-hidden="true">
         <img

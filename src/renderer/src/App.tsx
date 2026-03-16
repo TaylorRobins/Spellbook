@@ -5,6 +5,7 @@ import { SpellList } from './components/SpellList/SpellList'
 import { SpellDetail } from './components/SpellDetail/SpellDetail'
 import { SpellbookView } from './components/SpellbookView/SpellbookView'
 import { CharacterModal } from './components/CharacterModal/CharacterModal'
+import { UpdateModal } from './components/UpdateModal/UpdateModal'
 import { useSpells } from './hooks/useSpells'
 import { useCharacters } from './hooks/useCharacters'
 import { useSpellbook } from './hooks/useSpellbook'
@@ -35,6 +36,8 @@ export default function App(): JSX.Element {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null)
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
+  const [showUpdateModal, setShowUpdateModal] = useState(false)
+  const [appUpdateState, setAppUpdateState] = useState<null | { type: 'downloading'; percent: number } | { type: 'ready'; version: string } | { type: 'uptodate' }>(null)
   const [layout, setLayout] = useState<'split' | 'full'>(() =>
     (localStorage.getItem('spellbook-layout') as 'split' | 'full') ?? 'split'
   )
@@ -56,6 +59,19 @@ export default function App(): JSX.Element {
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [layout, selectedSpell])
+
+  useEffect(() => {
+    return window.api.onAppUpdate((event) => {
+      if (event.type === 'downloading') {
+        setAppUpdateState({ type: 'downloading', percent: event.percent })
+      } else if (event.type === 'ready') {
+        setAppUpdateState({ type: 'ready', version: event.version })
+      } else if (event.type === 'not-available') {
+        setAppUpdateState({ type: 'uptodate' })
+        setTimeout(() => setAppUpdateState(null), 3000)
+      }
+    })
+  }, [])
 
   const {
     characters,
@@ -137,8 +153,26 @@ export default function App(): JSX.Element {
         onNewCharacter={() => setModalMode('create')}
         onEditCharacter={() => setModalMode('edit')}
         onDeleteCharacter={handleDeleteCharacter}
+        onOpenUpdateModal={() => setShowUpdateModal(true)}
       />
       <div className={styles.mainPane}>
+        {appUpdateState && (
+          <div className={styles.updateBanner}>
+            <span className={styles.updateBannerText}>
+              {appUpdateState.type === 'downloading'
+                ? `Downloading update… ${appUpdateState.percent}%`
+                : appUpdateState.type === 'ready'
+                ? `Update v${appUpdateState.version} ready — restart to install`
+                : 'Already up to date'}
+            </span>
+            {appUpdateState.type === 'ready' && (
+              <button className={styles.updateBannerBtn} onClick={() => window.api.quitAndInstall()}>
+                Restart now
+              </button>
+            )}
+            <button className={styles.updateBannerDismiss} onClick={() => setAppUpdateState(null)}>✕</button>
+          </div>
+        )}
         <div className={styles.toolbar}>
           <SearchBar value={searchQuery} onChange={setSearchQuery} onSelectSuggestion={handleSelectSuggestion} />
           <button
@@ -223,6 +257,7 @@ export default function App(): JSX.Element {
           onClose={() => setModalMode(null)}
         />
       )}
+      {showUpdateModal && <UpdateModal onClose={() => setShowUpdateModal(false)} />}
     </div>
   )
 }

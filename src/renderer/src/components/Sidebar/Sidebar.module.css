@@ -164,6 +164,35 @@
   margin-top: 4px;
 }
 
+.tools {
+  padding: 6px 10px 2px;
+  border-top: 1px solid rgba(201, 168, 76, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+  z-index: 1;
+}
+
+.toolBtn {
+  width: 100%;
+  padding: 5px 8px;
+  text-align: left;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+  transition: opacity 0.15s, color 0.15s;
+  border-radius: 2px;
+}
+
+.toolBtn:hover {
+  opacity: 1;
+  color: var(--color-accent-gold);
+}
+
 .wizard {
   display: flex;
   justify-content: center;

@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { ipcMain, app } from 'electron'
 import {
   querySpells, getSpellById, toggleFavorite,
   getAllCharacters, createCharacter, updateCharacter, deleteCharacter,
@@ -6,6 +6,8 @@ import {
   getSpellSuggestions
 } from './database'
 import type { SpellFilters, CharacterRow } from './database'
+import { updateSpellsFromFoundry } from './spell-updater'
+import { checkForUpdates, quitAndInstall } from './auto-update'
 
 export function registerIpcHandlers(): void {
   ipcMain.handle('spells:getAll', (_event, filters: SpellFilters) => {
@@ -29,4 +31,19 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('character_spells:togglePrepared', (_e, charId: number, spellId: number) => toggleSpellPrepared(charId, spellId))
   ipcMain.handle('character_spells:getAll', (_e, charId: number) => getCharacterSpells(charId))
   ipcMain.handle('spells:suggestions', (_e, query: string) => getSpellSuggestions(query))
+
+  ipcMain.handle('spells:update', async (event) => {
+    return updateSpellsFromFoundry((message) => {
+      event.sender.send('spells:update-progress', message)
+    })
+  })
+
+  ipcMain.handle('app:checkUpdate', (event) => {
+    if (!app.isPackaged) {
+      event.sender.send('app:update', { type: 'not-available' })
+      return
+    }
+    checkForUpdates()
+  })
+  ipcMain.handle('app:quitAndInstall', () => quitAndInstall())
 }

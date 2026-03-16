@@ -158,6 +158,49 @@ function runMigrations(): void {
     }
     db.pragma('user_version = 6')
   }
+
+  // v7: settings key-value table + FTS5 virtual table
+  if (currentVersion < 7) {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS settings (
+        key   TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      );
+    `)
+    db.exec(`
+      DROP TABLE IF EXISTS spells_fts;
+      CREATE VIRTUAL TABLE spells_fts USING fts5(
+        name,
+        description,
+        traditions,
+        components,
+        saving_throw,
+        area,
+        content='spells',
+        content_rowid='id'
+      );
+      INSERT INTO spells_fts(rowid, name, description, traditions, components, saving_throw, area)
+        SELECT id, name, description, traditions, components, saving_throw, area FROM spells;
+
+      CREATE TRIGGER IF NOT EXISTS spells_ai AFTER INSERT ON spells BEGIN
+        INSERT INTO spells_fts(rowid, name, description, traditions, components, saving_throw, area)
+        VALUES (new.id, new.name, new.description, new.traditions, new.components, new.saving_throw, new.area);
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS spells_ad AFTER DELETE ON spells BEGIN
+        INSERT INTO spells_fts(spells_fts, rowid, name, description, traditions, components, saving_throw, area)
+        VALUES ('delete', old.id, old.name, old.description, old.traditions, old.components, old.saving_throw, old.area);
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS spells_au AFTER UPDATE ON spells BEGIN
+        INSERT INTO spells_fts(spells_fts, rowid, name, description, traditions, components, saving_throw, area)
+        VALUES ('delete', old.id, old.name, old.description, old.traditions, old.components, old.saving_throw, old.area);
+        INSERT INTO spells_fts(rowid, name, description, traditions, components, saving_throw, area)
+        VALUES (new.id, new.name, new.description, new.traditions, new.components, new.saving_throw, new.area);
+      END;
+    `)
+    db.pragma('user_version = 7')
+  }
 }
 
 export interface SpellRow {
@@ -197,37 +240,56 @@ export interface CharacterSpellRow extends SpellRow {
   slot_level: number | null
 }
 
-export function querySpells(filters: SpellFilters): SpellRow[] {
-  const conditions: string[] = []
-  const params: (string | number)[] = []
+function buildFtsQuery(search: string): string {
+  const sanitized = search.replace(/["\^*()\[\]{}<>!:@]/g, ' ')
+  const words = sanitized.trim().split(/\s+/).filter(Boolean)
+  if (!words.length) return '""'
+  return words.map(w => `${w}*`).join(' ')
+}
 
+export function querySpells(filters: SpellFilters): SpellRow[] {
+  // Extra conditions that apply in all paths (tradition + level filters)
+  const extraConditions: string[] = []
+  const extraParams: (string | number)[] = []
+
+  if (filters.tradition) {
+    extraConditions.push(`(',' || s.traditions || ',' LIKE ?)`)
+    extraParams.push(`%,${filters.tradition},%`)
+  }
+  if (filters.level !== undefined) {
+    extraConditions.push(`s.level = ?`)
+    extraParams.push(filters.level)
+  }
+
+  // ── FTS path (search term present) ──────────────────────────────────────
+  if (filters.search) {
+    const ftsQuery = buildFtsQuery(filters.search)
+    const favJoin = filters.favorites ? `JOIN favorites f ON s.id = f.spell_id` : ''
+    const extraWhere = extraConditions.length ? `AND ${extraConditions.join(' AND ')}` : ''
+    const sql = `
+      SELECT s.* FROM spells s
+      JOIN spells_fts ON s.id = spells_fts.rowid
+      ${favJoin}
+      WHERE spells_fts MATCH ?
+      ${extraWhere}
+      ORDER BY bm25(spells_fts, 10.0, 1.0, 0.5, 0.5, 0.5, 0.5) ASC
+    `
+    return db.prepare(sql).all(ftsQuery, ...extraParams) as SpellRow[]
+  }
+
+  // ── No search: LIKE path ─────────────────────────────────────────────────
   if (filters.favorites) {
-    // Join favorites table so we can order by when the spell was added
-    if (filters.search) {
-      conditions.push(`(s.name LIKE ? OR s.description LIKE ?)`)
-      params.push(`%${filters.search}%`, `%${filters.search}%`)
-    }
-    if (filters.tradition) {
-      conditions.push(`(',' || s.traditions || ',' LIKE ?)`)
-      params.push(`%,${filters.tradition},%`)
-    }
-    if (filters.level !== undefined) {
-      conditions.push(`s.level = ?`)
-      params.push(filters.level)
-    }
-    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''
+    const where = extraConditions.length ? `WHERE ${extraConditions.join(' AND ')}` : ''
     const sql = `SELECT s.* FROM spells s
                  JOIN favorites f ON s.id = f.spell_id
                  ${where}
                  ORDER BY f.added_at DESC, s.name ASC`
-    return db.prepare(sql).all(...params) as SpellRow[]
+    return db.prepare(sql).all(...extraParams) as SpellRow[]
   }
 
-  if (filters.search) {
-    const term = `%${filters.search}%`
-    conditions.push(`(name LIKE ? OR description LIKE ? OR traditions LIKE ? OR components LIKE ? OR saving_throw LIKE ? OR area LIKE ?)`)
-    params.push(term, term, term, term, term, term)
-  }
+  // Regular: tradition/level only (re-build without table alias for simple query)
+  const conditions: string[] = []
+  const params: (string | number)[] = []
   if (filters.tradition) {
     conditions.push(`(',' || traditions || ',' LIKE ?)`)
     params.push(`%,${filters.tradition},%`)
@@ -236,12 +298,8 @@ export function querySpells(filters: SpellFilters): SpellRow[] {
     conditions.push(`level = ?`)
     params.push(filters.level)
   }
-
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''
-  const nameFirst = filters.search ? `CASE WHEN name LIKE ? THEN 0 ELSE 1 END,` : ''
-  const sql = `SELECT * FROM spells ${where} ORDER BY ${nameFirst} level ASC, name ASC`
-  if (filters.search) params.push(`%${filters.search}%`)
-  return db.prepare(sql).all(...params) as SpellRow[]
+  return db.prepare(`SELECT * FROM spells ${where} ORDER BY level ASC, name ASC`).all(...params) as SpellRow[]
 }
 
 export function getSpellById(id: number): SpellRow | undefined {
@@ -305,6 +363,79 @@ export function toggleSpellPrepared(characterId: number, spellId: number): boole
     .prepare('SELECT is_prepared FROM character_spells WHERE character_id = ? AND spell_id = ?')
     .get(characterId, spellId) as { is_prepared: 0 | 1 } | undefined
   return row?.is_prepared === 1
+}
+
+export interface SpellInsert {
+  name: string
+  level: number
+  traditions: string
+  school: string
+  cast_time: string
+  components: string
+  range: string
+  area: string
+  duration: string
+  saving_throw: string
+  description: string
+  heightened_effects: string
+}
+
+export function upsertSpells(spells: SpellInsert[]): { added: number; updated: number; skipped: number } {
+  let added = 0, updated = 0, skipped = 0
+  const checkStmt = db.prepare(
+    'SELECT level, traditions, school, cast_time, components, range, area, duration, saving_throw, description, heightened_effects FROM spells WHERE name = ?'
+  )
+  const insertStmt = db.prepare(
+    `INSERT INTO spells (name, level, traditions, school, cast_time, components, range, area, duration, saving_throw, description, heightened_effects)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  )
+  const updateStmt = db.prepare(
+    `UPDATE spells SET level=?, traditions=?, school=?, cast_time=?, components=?, range=?, area=?, duration=?, saving_throw=?, description=?, heightened_effects=?
+     WHERE name=?`
+  )
+  const doUpsert = db.transaction(() => {
+    for (const s of spells) {
+      const existing = checkStmt.get(s.name) as Omit<SpellInsert, 'name'> | undefined
+      if (existing) {
+        const changed =
+          existing.level !== s.level ||
+          existing.traditions !== s.traditions ||
+          existing.school !== s.school ||
+          existing.cast_time !== s.cast_time ||
+          existing.components !== s.components ||
+          existing.range !== s.range ||
+          existing.area !== s.area ||
+          existing.duration !== s.duration ||
+          existing.saving_throw !== s.saving_throw ||
+          existing.description !== s.description ||
+          existing.heightened_effects !== s.heightened_effects
+        if (changed) {
+          updateStmt.run(s.level, s.traditions, s.school, s.cast_time, s.components, s.range, s.area, s.duration, s.saving_throw, s.description, s.heightened_effects, s.name)
+          updated++
+        } else {
+          skipped++
+        }
+      } else {
+        insertStmt.run(s.name, s.level, s.traditions, s.school, s.cast_time, s.components, s.range, s.area, s.duration, s.saving_throw, s.description, s.heightened_effects)
+        added++
+      }
+    }
+  })
+  doUpsert()
+  return { added, updated, skipped }
+}
+
+export function getSetting(key: string): string | null {
+  const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value: string } | undefined
+  return row?.value ?? null
+}
+
+export function setSetting(key: string, value: string): void {
+  db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(key, value)
+}
+
+export function rebuildFts(): void {
+  db.exec("INSERT INTO spells_fts(spells_fts) VALUES('rebuild')")
 }
 
 export function getSpellSuggestions(query: string): { id: number; name: string }[] {

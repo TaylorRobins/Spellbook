@@ -1,5 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { SpellFilters, SpellRow, CharacterRow, CharacterSpellRow } from '../main/database'
+import type { UpdateResult } from '../main/spell-updater'
+import type { AppUpdateEvent } from '../main/auto-update'
 
 const api = {
   getSpells: (filters: SpellFilters): Promise<SpellRow[]> => ipcRenderer.invoke('spells:getAll', filters),
@@ -14,6 +16,21 @@ const api = {
   toggleSpellPrepared: (charId: number, spellId: number): Promise<boolean> => ipcRenderer.invoke('character_spells:togglePrepared', charId, spellId),
   getCharacterSpells: (charId: number): Promise<CharacterSpellRow[]> => ipcRenderer.invoke('character_spells:getAll', charId),
   getSpellSuggestions: (query: string): Promise<{ id: number; name: string }[]> => ipcRenderer.invoke('spells:suggestions', query),
+
+  updateSpells: (): Promise<UpdateResult> => ipcRenderer.invoke('spells:update'),
+  onUpdateProgress: (cb: (message: string) => void): (() => void) => {
+    const listener = (_: Electron.IpcRendererEvent, msg: string): void => cb(msg)
+    ipcRenderer.on('spells:update-progress', listener)
+    return () => ipcRenderer.removeListener('spells:update-progress', listener)
+  },
+
+  checkForAppUpdate: (): Promise<void> => ipcRenderer.invoke('app:checkUpdate'),
+  quitAndInstall: (): Promise<void> => ipcRenderer.invoke('app:quitAndInstall'),
+  onAppUpdate: (cb: (event: AppUpdateEvent) => void): (() => void) => {
+    const listener = (_: Electron.IpcRendererEvent, event: AppUpdateEvent): void => cb(event)
+    ipcRenderer.on('app:update', listener)
+    return () => ipcRenderer.removeListener('app:update', listener)
+  },
 }
 
 contextBridge.exposeInMainWorld('api', api)
