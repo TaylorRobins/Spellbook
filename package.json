@@ -1,6 +1,6 @@
 {
   "name": "spellbook",
-  "version": "0.2.2",
+  "version": "0.3.1",
   "description": "A dark fantasy spellbook app for tabletop RPGs",
   "main": "./out/main/index.js",
   "scripts": {
