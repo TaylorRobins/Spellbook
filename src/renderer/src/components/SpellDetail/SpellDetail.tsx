@@ -7,24 +7,70 @@ import styles from './SpellDetail.module.css'
 const ALLOWED_TAGS = ['p','ul','ol','li','table','thead','tbody','tr','td','th','strong','em','b','i','hr','br','span','h3','h4']
 const ALLOWED_ATTR = ['class','colspan','rowspan']
 
+const ACTION_GLYPHS: Record<string, string> = {
+  a: '◆', '1': '◆',
+  d: '◆◆', '2': '◆◆',
+  t: '◆◆◆', '3': '◆◆◆',
+  r: '↩',
+  f: '◇',
+}
+
 function prepareDescription(raw: string): string {
   if (!raw) return ''
-  const isHtml = /<[a-z][\s\S]*>/i.test(raw)
+
+  // Strip Foundry macros before HTML/plain-text branching so both paths are covered
+  let text = raw
+  text = text.replace(/@\w+\[[^\]]+\]\{([^}]+)\}/g, '$1')
+  text = text.replace(/@\w+\[[^\]]+\]/g, '')
+  text = text.replace(/\[\[\/\w[^\]]*\]\]\{([^}]+)\}/g, '$1')
+  text = text.replace(/\[\[[^\]]+\]\]/g, '')
+
+  // Replace action-glyph spans (HTML descriptions) — runs before isHtml check so it's
+  // also a no-op on plain text without causing issues
+  text = text.replace(
+    /<(?:span|i)[^>]*class="[^"]*(?:action-glyph|pf2-icon)[^"]*"[^>]*>([^<]*)<\/(?:span|i)>/gi,
+    (_, g) => ACTION_GLYPHS[g.trim()] ?? g
+  )
+  // Contextual replacement: "Melee a " / "Ranged d " etc. in plain-text descriptions
+  // where the glyph letter appears literally between attack type and weapon name
+  text = text.replace(/\b(Melee|Ranged) ([adtrf1-3]) /g, (_, type: string, g: string) =>
+    `${type} ${ACTION_GLYPHS[g.toLowerCase()] ?? g} `
+  )
+
+  const isHtml = /<[a-z][\s\S]*>/i.test(text)
+  const BR = isHtml ? '<br><br>' : '\n\n'
+
+  // Form/deity name: 1-2 capitalised words, hyphens allowed (e.g. Zon-Kuthon, Cayden Cailean)
+  const N = '([A-Z][a-zA-Z-]+(?:\\s[A-Z][a-zA-Z-]+)?)'
+  // Stat keyword that immediately follows the form name
+  const S = '( Speed | fly | swim | burrow | climb | no )'
+  // Damage types that can end an entry with no trailing period (e.g. "piercing Asmodeus")
+  const D = 'piercing|slashing|bludgeoning|fire|cold|electricity|poison|acid|sonic|mental|vitality|void|force'
+
+  // Pass 1 — entry preceded by an explicit separator (. : ;)
+  text = text.replace(
+    new RegExp(`([.:;]) ${N}${S}`, 'g'),
+    (_, sep, name, stat) => `${sep}${BR}<strong>${name}</strong>${stat}`
+  )
+  // Pass 2 — entry preceded only by a damage type word (no period)
+  text = text.replace(
+    new RegExp(`\\b(${D})\\.?\\s+${N}${S}`, 'g'),
+    (_, dmg, name, stat) => `${dmg}${BR}<strong>${name}</strong>${stat}`
+  )
+
+  // Break before each Heightened entry that appears inline in the description
+  text = text.replace(/(?<=[^\n])\s+(Heightened \([^)]+\))/g, `${BR}<strong>$1</strong>`)
+
   if (!isHtml) {
-    return raw.split('\n\n').map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('')
+    return text.split('\n\n').map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('')
   }
-  // Strip Foundry macros: @TAG[...]{label} → label, @TAG[...] → nothing
-  let html = raw
-  html = html.replace(/@\w+\[[^\]]+\]\{([^}]+)\}/g, '$1')
-  html = html.replace(/@\w+\[[^\]]+\]/g, '')
-  html = html.replace(/\[\[\/\w[^\]]*\]\]\{([^}]+)\}/g, '$1')
-  html = html.replace(/\[\[[^\]]+\]\]/g, '')
-  html = DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR }) as string
+
+  text = DOMPurify.sanitize(text, { ALLOWED_TAGS, ALLOWED_ATTR }) as string
   // Wrap dice notation outside HTML tags
-  html = html.replace(/(<[^>]+>)|(\b\d+d\d+(?:[+-]\d+)?\b)/g, (_m, tag, dice) =>
+  text = text.replace(/(<[^>]+>)|(\b\d+d\d+(?:[+-]\d+)?\b)/g, (_m, tag, dice) =>
     tag ? tag : `<span class="dice">${dice}</span>`
   )
-  return html
+  return text
 }
 
 interface SpellDetailProps {
@@ -92,7 +138,7 @@ export function SpellDetail({ spell, onToggleFavorite, fullWidth, onBack, style 
       </div>
 
       {/* Body */}
-      <div className={styles.body}>
+      <div key={spell.id} className={styles.body}>
         {/* Stat block */}
         <div className={fullWidth ? styles.statBlockTwoCol : styles.statBlock}>
           {fullWidth ? (

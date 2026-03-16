@@ -4,9 +4,10 @@
   background: var(--color-bg-card);
   border-bottom: 1px solid rgba(42, 28, 14, 0.8);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.12s ease, box-shadow 0.12s ease, transform 0.08s ease;
   user-select: none;
   animation: cardFadeIn 0.2s ease-out both;
+  will-change: transform;
 }
 
 @keyframes cardFadeIn {
@@ -16,6 +17,11 @@
 
 .card:hover {
   background: var(--color-bg-hover);
+  box-shadow: inset 0 0 0 1px rgba(201, 168, 76, 0.12);
+}
+
+.card:active {
+  transform: scale(0.985);
 }
 
 .card.selected {
@@ -32,6 +38,11 @@
   flex-shrink: 0;
   background: var(--school-color, var(--color-accent-gold-dim));
   opacity: 0.8;
+  transition: opacity 0.12s;
+}
+
+.card:hover .schoolBar {
+  opacity: 1;
 }
 
 .body {
@@ -99,9 +110,10 @@
   font-size: 14px;
   color: var(--color-text-muted);
   padding: 2px 3px;
-  transition: color 0.15s, transform 0.1s;
+  transition: color 0.15s, transform 0.15s;
   flex-shrink: 0;
   line-height: 1;
+  will-change: transform;
 }
 
 .favoriteBtn:hover {
@@ -109,23 +121,38 @@
   transform: scale(1.2);
 }
 
+.favoriteBtn:active {
+  animation: starPop 0.2s ease-out;
+}
+
 .favoriteBtn.favorited {
   color: var(--color-accent-gold);
   text-shadow: 0 0 8px rgba(201, 168, 76, 0.5);
+}
+
+@keyframes starPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.35); }
+  100% { transform: scale(1); }
 }
 
 .spellbookBtn {
   font-size: 14px;
   color: var(--color-text-muted);
   padding: 2px 3px;
-  transition: color 0.15s, transform 0.1s;
+  transition: color 0.15s, transform 0.15s;
   flex-shrink: 0;
   line-height: 1;
+  will-change: transform;
 }
 
 .spellbookBtn:hover {
   color: var(--color-accent-gold);
   transform: scale(1.2);
+}
+
+.spellbookBtn:active {
+  animation: starPop 0.2s ease-out;
 }
 
 .spellbookBtn.inSpellbook {

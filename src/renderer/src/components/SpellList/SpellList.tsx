@@ -38,7 +38,7 @@ export function SpellList({
     ;(cards[focusedIndex] as HTMLElement | undefined)?.scrollIntoView({ block: 'nearest' })
   }, [focusedIndex])
 
-  if (loading) {
+  if (loading && spells.length === 0) {
     return (
       <div className={styles.list} style={style}>
         {Array.from({ length: 5 }).map((_, i) => (
@@ -54,7 +54,7 @@ export function SpellList({
     )
   }
 
-  if (spells.length === 0) {
+  if (!loading && spells.length === 0) {
     return (
       <div className={styles.list} style={style}>
         <div className={styles.empty}>
@@ -67,7 +67,7 @@ export function SpellList({
   }
 
   return (
-    <div ref={listRef} className={styles.list} style={style}>
+    <div ref={listRef} className={`${styles.list} ${loading ? styles.fading : ''}`} style={style}>
       <div className={styles.count}>{spells.length} spell{spells.length !== 1 ? 's' : ''}</div>
       {spells.map((spell, i) => (
         <SpellCard

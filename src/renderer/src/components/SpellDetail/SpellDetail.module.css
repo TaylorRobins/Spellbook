@@ -6,7 +6,7 @@
   flex-direction: column;
   overflow: hidden;
   background: var(--color-parchment);
-  animation: detailReveal 0.25s ease-out both;
+  animation: detailReveal 0.18s ease-out both;
 }
 
 /* ── Full-width layout ── */
@@ -22,6 +22,11 @@
 @keyframes detailReveal {
   from { opacity: 0; transform: translateX(6px); }
   to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes bodyFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* ── Header ── */
@@ -166,6 +171,7 @@
   background: var(--color-parchment);
   /* Subtle vignette edges */
   box-shadow: inset 0 0 40px rgba(44, 24, 16, 0.06);
+  animation: bodyFadeIn 0.15s ease-out both;
 }
 
 .detailFull .body {

@@ -72,6 +72,12 @@
   margin: 0;
   padding: 4px 0;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  animation: dropdownReveal 0.1s ease-out both;
+}
+
+@keyframes dropdownReveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .suggestion {
@@ -88,8 +94,14 @@
   font-weight: 600;
 }
 
-.suggestion.active,
 .suggestion:hover {
   background: var(--color-bg-hover);
   color: var(--color-text-primary);
+}
+
+.suggestion.active {
+  background: rgba(201, 168, 76, 0.1);
+  color: var(--color-accent-gold-bright);
+  border-left: 2px solid var(--color-accent-gold-dim);
+  padding-left: 16px;
 }
