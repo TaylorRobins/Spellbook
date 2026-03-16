@@ -6,6 +6,7 @@ import styles from './SpellCard.module.css'
 interface SpellCardProps {
   spell: Spell
   isSelected: boolean
+  isFocused?: boolean
   onSelect: (spell: Spell) => void
   onToggleFavorite: (id: number) => void
   inSpellbook?: boolean
@@ -17,6 +18,7 @@ interface SpellCardProps {
 export function SpellCard({
   spell,
   isSelected,
+  isFocused,
   onSelect,
   onToggleFavorite,
   inSpellbook,
@@ -28,7 +30,8 @@ export function SpellCard({
 
   return (
     <div
-      className={`${styles.card} ${isSelected ? styles.selected : ''}`}
+      data-card="true"
+      className={`${styles.card} ${isSelected ? styles.selected : ''} ${isFocused ? styles.focused : ''}`}
       style={{ '--school-color': `var(--color-${spell.school})` } as React.CSSProperties}
       onClick={() => onSelect(spell)}
     >

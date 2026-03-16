@@ -22,12 +22,32 @@
   position: relative;
 }
 
+.shortcutsBtn {
+  position: absolute;
+  right: 46px;
+  top: 0;
+  bottom: 0;
+  padding: 0 12px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 600;
+  transition: color 0.15s;
+  border-left: 1px solid rgba(122, 98, 48, 0.3);
+}
+
+.shortcutsBtn:hover {
+  color: var(--color-accent-gold);
+}
+
 .layoutToggle {
   position: absolute;
   right: 0;
   top: 0;
   bottom: 0;
-  padding: 0 16px;
+  padding: 0 14px;
   color: var(--color-text-muted);
   display: flex;
   align-items: center;
@@ -43,6 +63,35 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+}
+
+.dragHandle {
+  flex-shrink: 0;
+  width: 6px;
+  cursor: col-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-secondary);
+  border-left: 1px solid rgba(122, 98, 48, 0.2);
+  border-right: 1px solid rgba(122, 98, 48, 0.2);
+  transition: background 0.15s;
+  position: relative;
+}
+
+.dragHandle:hover {
+  background: rgba(201, 168, 76, 0.1);
+}
+
+.dragHandle:active {
+  background: rgba(201, 168, 76, 0.18);
+}
+
+.dragDots {
+  width: 2px;
+  height: 24px;
+  background: radial-gradient(circle, rgba(201, 168, 76, 0.5) 1px, transparent 1px);
+  background-size: 2px 6px;
 }
 
 .updateBanner {

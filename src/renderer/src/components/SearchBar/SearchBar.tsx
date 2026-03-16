@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, useEffect } from 'react'
+import { useCallback, useRef, useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 import styles from './SearchBar.module.css'
 
 interface Suggestion {
@@ -10,6 +10,11 @@ interface SearchBarProps {
   value: string
   onChange: (value: string) => void
   onSelectSuggestion: (id: number) => void
+}
+
+export interface SearchBarHandle {
+  focus: () => void
+  isFocused: () => boolean
 }
 
 function HighlightedName({ name, query }: { name: string; query: string }): JSX.Element {
@@ -24,8 +29,13 @@ function HighlightedName({ name, query }: { name: string; query: string }): JSX.
   )
 }
 
-export function SearchBar({ value, onChange, onSelectSuggestion }: SearchBarProps): JSX.Element {
+export const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(function SearchBar({ value, onChange, onSelectSuggestion }, ref) {
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useImperativeHandle(ref, () => ({
+    focus: () => inputRef.current?.focus(),
+    isFocused: () => document.activeElement === inputRef.current,
+  }))
   const containerRef = useRef<HTMLDivElement>(null)
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [activeIndex, setActiveIndex] = useState(-1)
@@ -141,4 +151,4 @@ export function SearchBar({ value, onChange, onSelectSuggestion }: SearchBarProp
       )}
     </div>
   )
-}
+})

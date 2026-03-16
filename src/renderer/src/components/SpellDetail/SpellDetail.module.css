@@ -284,8 +284,93 @@
   margin-bottom: 18px;
 }
 
-.description p + p {
-  margin-top: 10px;
+.description :global(p) { margin: 0 0 10px; }
+.description :global(p:last-child) { margin-bottom: 0; }
+
+.description :global(ul),
+.description :global(ol) {
+  margin: 0 0 10px 20px;
+  padding: 0;
+}
+
+.description :global(li) { margin-bottom: 4px; }
+
+.description :global(strong),
+.description :global(b) { font-weight: 700; color: var(--color-parchment-text); }
+
+.description :global(em),
+.description :global(i) { font-style: italic; }
+
+.description :global(hr) {
+  border: none;
+  border-top: 1px solid var(--color-parchment-border);
+  margin: 12px 0;
+  opacity: 0.6;
+}
+
+.description :global(h3),
+.description :global(h4) {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-parchment-text);
+  margin: 14px 0 6px;
+}
+
+.description :global(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: 13px;
+}
+
+.description :global(th) {
+  background: var(--color-parchment-dark);
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-parchment-text-muted);
+  padding: 5px 8px;
+  border: 1px solid var(--color-parchment-border);
+  text-align: left;
+}
+
+.description :global(td) {
+  padding: 5px 8px;
+  border: 1px solid var(--color-parchment-border);
+  vertical-align: top;
+}
+
+.description :global(tr:nth-child(even) td) {
+  background: rgba(44, 24, 16, 0.04);
+}
+
+.description :global(.dice) {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  background: rgba(44, 24, 16, 0.1);
+  border: 1px solid rgba(44, 24, 16, 0.15);
+  border-radius: 3px;
+  padding: 0 4px;
+  color: var(--color-parchment-text);
+  white-space: nowrap;
+}
+
+.description p + p { margin-top: 10px; }
+
+.heightenedEffect :global(.dice) {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  background: rgba(44, 24, 16, 0.1);
+  border: 1px solid rgba(44, 24, 16, 0.15);
+  border-radius: 3px;
+  padding: 0 4px;
+  color: var(--color-parchment-text);
+  white-space: nowrap;
 }
 
 /* ── Heightened effects ── */

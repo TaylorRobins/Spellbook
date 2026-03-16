@@ -188,8 +188,8 @@ function transformSpell(raw: FoundrySpell): SpellInsert | null {
     }
   }
 
-  const description = stripHtml(sys.description?.value ?? '')
-  if (!description) return null
+  const description = sys.description?.value ?? ''
+  if (!description.replace(/<[^>]+>/g, '').trim()) return null
 
   const heightenedLevels =
     sys.heightening?.type === 'fixed' ? sys.heightening.levels : undefined
@@ -199,7 +199,7 @@ function transformSpell(raw: FoundrySpell): SpellInsert | null {
           .sort(([a], [b]) => parseInt(a) - parseInt(b))
           .map(([lvl, data]) => ({
             level: ordinal(parseInt(lvl)),
-            effect: stripHtml((data as { value?: string }).value ?? '')
+            effect: (data as { value?: string }).value ?? ''
           }))
           .filter((e) => e.effect)
       )

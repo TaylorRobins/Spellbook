@@ -1,12 +1,38 @@
+import { useMemo } from 'react'
+import DOMPurify from 'dompurify'
 import type { Spell } from '../../types/spell'
 import { TraditionBadge } from '../shared/TraditionBadge'
 import styles from './SpellDetail.module.css'
+
+const ALLOWED_TAGS = ['p','ul','ol','li','table','thead','tbody','tr','td','th','strong','em','b','i','hr','br','span','h3','h4']
+const ALLOWED_ATTR = ['class','colspan','rowspan']
+
+function prepareDescription(raw: string): string {
+  if (!raw) return ''
+  const isHtml = /<[a-z][\s\S]*>/i.test(raw)
+  if (!isHtml) {
+    return raw.split('\n\n').map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('')
+  }
+  // Strip Foundry macros: @TAG[...]{label} → label, @TAG[...] → nothing
+  let html = raw
+  html = html.replace(/@\w+\[[^\]]+\]\{([^}]+)\}/g, '$1')
+  html = html.replace(/@\w+\[[^\]]+\]/g, '')
+  html = html.replace(/\[\[\/\w[^\]]*\]\]\{([^}]+)\}/g, '$1')
+  html = html.replace(/\[\[[^\]]+\]\]/g, '')
+  html = DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR }) as string
+  // Wrap dice notation outside HTML tags
+  html = html.replace(/(<[^>]+>)|(\b\d+d\d+(?:[+-]\d+)?\b)/g, (_m, tag, dice) =>
+    tag ? tag : `<span class="dice">${dice}</span>`
+  )
+  return html
+}
 
 interface SpellDetailProps {
   spell: Spell
   onToggleFavorite: (id: number) => void
   fullWidth?: boolean
   onBack?: () => void
+  style?: React.CSSProperties
 }
 
 interface StatRowProps {
@@ -24,9 +50,11 @@ function StatRow({ label, value }: StatRowProps): JSX.Element | null {
   )
 }
 
-export function SpellDetail({ spell, onToggleFavorite, fullWidth, onBack }: SpellDetailProps): JSX.Element {
+export function SpellDetail({ spell, onToggleFavorite, fullWidth, onBack, style }: SpellDetailProps): JSX.Element {
+  const descHtml = useMemo(() => prepareDescription(spell.description), [spell.description])
+
   return (
-    <div className={fullWidth ? styles.detailFull : styles.detail}>
+    <div className={fullWidth ? styles.detailFull : styles.detail} style={style}>
       {/* Header */}
       <div
         className={styles.header}
@@ -96,11 +124,7 @@ export function SpellDetail({ spell, onToggleFavorite, fullWidth, onBack }: Spel
         <div className={styles.divider} />
 
         {/* Description */}
-        <div className={styles.description}>
-          {spell.description.split('\n\n').map((para, i) => (
-            <p key={i}>{para}</p>
-          ))}
-        </div>
+        <div className={styles.description} dangerouslySetInnerHTML={{ __html: descHtml }} />
 
         {/* Heightened effects */}
         {spell.heightened_effects.length > 0 && (
@@ -111,7 +135,7 @@ export function SpellDetail({ spell, onToggleFavorite, fullWidth, onBack }: Spel
             {spell.heightened_effects.map((h, i) => (
               <div key={i} className={styles.heightenedRow}>
                 <span className={styles.heightenedLevel}>{h.level}</span>
-                <span className={styles.heightenedEffect}>{h.effect}</span>
+                <span className={styles.heightenedEffect} dangerouslySetInnerHTML={{ __html: prepareDescription(h.effect) }} />
               </div>
             ))}
           </div>
