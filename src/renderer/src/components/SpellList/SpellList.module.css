@@ -7,19 +7,21 @@
 
 .count {
   padding: 6px 14px;
-  font-size: 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
   color: var(--color-text-muted);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   border-bottom: var(--border-subtle);
   background: var(--color-bg-secondary);
+  opacity: 0.8;
 }
 
 /* Skeleton loading */
 .skeleton {
   display: flex;
   align-items: stretch;
-  border-bottom: var(--border-subtle);
+  border-bottom: 1px solid rgba(42, 28, 14, 0.8);
   height: 62px;
 }
 
@@ -37,24 +39,24 @@
 }
 
 .skeletonName {
-  height: 14px;
+  height: 13px;
   width: 60%;
   background: var(--color-bg-hover);
-  border-radius: 3px;
-  animation: shimmer 1.4s infinite;
+  border-radius: 2px;
+  animation: shimmer 1.6s infinite;
 }
 
 .skeletonMeta {
   height: 10px;
   width: 40%;
   background: var(--color-bg-hover);
-  border-radius: 3px;
-  animation: shimmer 1.4s infinite 0.2s;
+  border-radius: 2px;
+  animation: shimmer 1.6s infinite 0.3s;
 }
 
 @keyframes shimmer {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
 }
 
 /* Empty state */
@@ -72,16 +74,20 @@
   font-size: 28px;
   color: var(--color-accent-gold-dim);
   margin-bottom: 12px;
+  text-shadow: 0 0 20px rgba(201, 168, 76, 0.3);
 }
 
 .emptyTitle {
-  font-size: 15px;
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
   color: var(--color-text-secondary);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  letter-spacing: 0.06em;
 }
 
 .emptyText {
-  font-size: 12px;
+  font-family: 'Crimson Text', serif;
+  font-size: 13px;
   color: var(--color-text-muted);
   font-style: italic;
   line-height: 1.6;

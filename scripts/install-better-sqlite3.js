@@ -12,8 +12,8 @@ const { execSync } = require('child_process')
 const zlib = require('zlib')
 
 const BETTER_SQLITE3_VERSION = '12.8.0'
-// Electron 32.x uses module ABI v125
-const ELECTRON_MODULE_ABI = '125'
+// Electron 32.x uses module ABI v128
+const ELECTRON_MODULE_ABI = '128'
 const PLATFORM = process.platform // win32, darwin, linux
 const ARCH = process.arch // x64, arm64, ia32
 
@@ -41,16 +41,17 @@ fs.mkdirSync(BINARY_DIR, { recursive: true })
 const tmpFile = path.join(BINARY_DIR, 'prebuilt.tar.gz')
 
 function download(url, dest, cb) {
-  const file = fs.createWriteStream(dest)
   function get(url) {
+    const file = fs.createWriteStream(dest)
     https.get(url, (res) => {
       if (res.statusCode === 301 || res.statusCode === 302) {
         file.close()
+        fs.existsSync(dest) && fs.unlinkSync(dest)
         return get(res.headers.location)
       }
       if (res.statusCode !== 200) {
         file.close()
-        fs.unlinkSync(dest)
+        fs.existsSync(dest) && fs.unlinkSync(dest)
         return cb(new Error(`HTTP ${res.statusCode}`))
       }
       res.pipe(file)

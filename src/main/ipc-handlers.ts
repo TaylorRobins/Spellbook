@@ -2,7 +2,8 @@ import { ipcMain } from 'electron'
 import {
   querySpells, getSpellById, toggleFavorite,
   getAllCharacters, createCharacter, updateCharacter, deleteCharacter,
-  addSpellToCharacter, removeSpellFromCharacter, toggleSpellPrepared, getCharacterSpells
+  addSpellToCharacter, removeSpellFromCharacter, toggleSpellPrepared, getCharacterSpells,
+  getSpellSuggestions
 } from './database'
 import type { SpellFilters, CharacterRow } from './database'
 
@@ -27,4 +28,5 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('character_spells:remove', (_e, charId: number, spellId: number) => removeSpellFromCharacter(charId, spellId))
   ipcMain.handle('character_spells:togglePrepared', (_e, charId: number, spellId: number) => toggleSpellPrepared(charId, spellId))
   ipcMain.handle('character_spells:getAll', (_e, charId: number) => getCharacterSpells(charId))
+  ipcMain.handle('spells:suggestions', (_e, query: string) => getSpellSuggestions(query))
 }

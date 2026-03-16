@@ -1,17 +1,26 @@
 :root {
-  /* Backgrounds — dark parchment */
-  --color-bg-primary: #1a1410;
-  --color-bg-secondary: #211b14;
-  --color-bg-tertiary: #2a2018;
-  --color-bg-hover: #342818;
-  --color-bg-selected: #3e3020;
-  --color-bg-card: #251e15;
+  /* Backgrounds — dark leather */
+  --color-bg-primary: #0d0904;
+  --color-bg-secondary: #150e07;
+  --color-bg-tertiary: #1e1509;
+  --color-bg-hover: #2a1c0e;
+  --color-bg-selected: #33200f;
+  --color-bg-card: #130c05;
+
+  /* Parchment (for detail panel) */
+  --color-parchment: #d9c99a;
+  --color-parchment-dark: #c8b47e;
+  --color-parchment-light: #e8dcc0;
+  --color-parchment-text: #2c1810;
+  --color-parchment-text-secondary: #5c3820;
+  --color-parchment-text-muted: #8b6040;
+  --color-parchment-border: rgba(101, 67, 33, 0.3);
 
   /* Gold accents */
   --color-accent-gold: #c9a84c;
   --color-accent-gold-dim: #7a6230;
   --color-accent-gold-bright: #f0d080;
-  --color-accent-gold-glow: rgba(201, 168, 76, 0.15);
+  --color-accent-gold-glow: rgba(201, 168, 76, 0.12);
 
   /* Text — warm parchment tones */
   --color-text-primary: #e8d8b0;
@@ -19,17 +28,17 @@
   --color-text-muted: #6a5540;
   --color-text-heading: #f0d080;
 
-  /* Traditions */
-  --color-arcane: #9b6fd4;
-  --color-arcane-bg: rgba(155, 111, 212, 0.15);
+  /* Traditions — jewel-toned */
+  --color-arcane: #5b8dd9;
+  --color-arcane-bg: rgba(91, 141, 217, 0.15);
   --color-divine: #d4a835;
   --color-divine-bg: rgba(212, 168, 53, 0.15);
-  --color-occult: #4db8a8;
-  --color-occult-bg: rgba(77, 184, 168, 0.15);
-  --color-primal: #5ab34d;
-  --color-primal-bg: rgba(90, 179, 77, 0.15);
+  --color-occult: #a855f7;
+  --color-occult-bg: rgba(168, 85, 247, 0.15);
+  --color-primal: #22c55e;
+  --color-primal-bg: rgba(34, 197, 94, 0.15);
 
-  /* Schools — left-border colors for spell cards */
+  /* Schools */
   --color-abjuration: #4a9fd4;
   --color-conjuration: #9b6fd4;
   --color-divination: #d4c84a;
@@ -43,10 +52,14 @@
   --sidebar-width: 220px;
   --detail-width: 400px;
   --searchbar-height: 54px;
-  --border-radius: 4px;
+  --border-radius: 3px;
 
   /* Borders */
-  --border-subtle: 1px solid #3a2e1e;
+  --border-subtle: 1px solid #2a1c0e;
   --border-ornate: 1px solid var(--color-accent-gold-dim);
   --border-bright: 1px solid var(--color-accent-gold);
+
+  /* Shadows */
+  --shadow-panel: 0 2px 12px rgba(0, 0, 0, 0.5);
+  --shadow-card: inset 0 1px 0 rgba(201, 168, 76, 0.04);
 }

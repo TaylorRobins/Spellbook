@@ -2,6 +2,7 @@ import Database from 'better-sqlite3'
 import { app } from 'electron'
 import { join } from 'path'
 import { seedSpells } from './seed-data'
+import { CANONICAL_SPELL_NAMES } from './canonical-spell-names'
 
 const isDev = process.env.NODE_ENV !== 'production'
 
@@ -139,6 +140,24 @@ function runMigrations(): void {
 
     db.pragma('user_version = 4')
   }
+
+  // v5: seed the full spell list into any existing database
+  if (currentVersion < 5) {
+    seedSpells(db)
+    db.pragma('user_version = 5')
+  }
+
+  // v6: remove spells not in the canonical list (cleans up old partial seeds)
+  if (currentVersion < 6) {
+    const allSpells = db.prepare('SELECT name FROM spells').all() as { name: string }[]
+    const toDelete = allSpells.filter(s => !CANONICAL_SPELL_NAMES.has(s.name))
+    if (toDelete.length > 0) {
+      const del = db.prepare('DELETE FROM spells WHERE name = ?')
+      const deleteAll = db.transaction(() => { for (const s of toDelete) del.run(s.name) })
+      deleteAll()
+    }
+    db.pragma('user_version = 6')
+  }
 }
 
 export interface SpellRow {
@@ -205,8 +224,9 @@ export function querySpells(filters: SpellFilters): SpellRow[] {
   }
 
   if (filters.search) {
-    conditions.push(`(name LIKE ? OR description LIKE ?)`)
-    params.push(`%${filters.search}%`, `%${filters.search}%`)
+    const term = `%${filters.search}%`
+    conditions.push(`(name LIKE ? OR description LIKE ? OR traditions LIKE ? OR components LIKE ? OR saving_throw LIKE ? OR area LIKE ?)`)
+    params.push(term, term, term, term, term, term)
   }
   if (filters.tradition) {
     conditions.push(`(',' || traditions || ',' LIKE ?)`)
@@ -218,7 +238,9 @@ export function querySpells(filters: SpellFilters): SpellRow[] {
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''
-  const sql = `SELECT * FROM spells ${where} ORDER BY level ASC, name ASC`
+  const nameFirst = filters.search ? `CASE WHEN name LIKE ? THEN 0 ELSE 1 END,` : ''
+  const sql = `SELECT * FROM spells ${where} ORDER BY ${nameFirst} level ASC, name ASC`
+  if (filters.search) params.push(`%${filters.search}%`)
   return db.prepare(sql).all(...params) as SpellRow[]
 }
 
@@ -283,6 +305,15 @@ export function toggleSpellPrepared(characterId: number, spellId: number): boole
     .prepare('SELECT is_prepared FROM character_spells WHERE character_id = ? AND spell_id = ?')
     .get(characterId, spellId) as { is_prepared: 0 | 1 } | undefined
   return row?.is_prepared === 1
+}
+
+export function getSpellSuggestions(query: string): { id: number; name: string }[] {
+  return db.prepare(`
+    SELECT id, name FROM spells
+    WHERE name LIKE ?
+    ORDER BY CASE WHEN name LIKE ? THEN 0 ELSE 1 END, name ASC
+    LIMIT 8
+  `).all(`%${query}%`, `${query}%`) as { id: number; name: string }[]
 }
 
 export function getCharacterSpells(characterId: number): CharacterSpellRow[] {

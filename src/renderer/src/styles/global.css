@@ -14,24 +14,24 @@ body,
 }
 
 body {
-  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  font-family: 'Crimson Text', 'Palatino Linotype', Palatino, Georgia, serif;
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
   -webkit-font-smoothing: antialiased;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.5;
 }
 
-/* Scrollbar */
+/* Scrollbar — thin gold */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-primary);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--color-accent-gold-dim);
-  border-radius: 3px;
+  border-radius: 0;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-accent-gold);
@@ -46,7 +46,7 @@ button {
   color: inherit;
 }
 
-input {
+input, select, textarea {
   font-family: inherit;
   font-size: inherit;
 }

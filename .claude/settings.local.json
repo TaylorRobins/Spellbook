@@ -32,7 +32,30 @@
       "Bash(echo \"ELECTRON_RUN_AS_NODE=$ELECTRON_RUN_AS_NODE\")",
       "Bash(unset ELECTRON_RUN_AS_NODE)",
       "Bash(taskkill /F /IM node.exe /T)",
-      "Bash(ls -lh \"c:\\\\Users\\\\robin\\\\Claude\\\\dist/\"*.exe)"
+      "Bash(ls -lh \"c:\\\\Users\\\\robin\\\\Claude\\\\dist/\"*.exe)",
+      "Bash(ls \"c:\\\\Users\\\\robin\\\\Claude\\\\dist\\\\win-unpacked\\\\resources\\\\app.asar.unpacked\\\\node_modules\\\\better-sqlite3\\\\build\\\\Release\"\" 2>/dev/null || echo \"NOT FOUND \")",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(cat:*)",
+      "Bash(sqlite3 \"C:/Users/robin/AppData/Roaming/Spellbook/spellbook-dev.db\" \"SELECT COUNT\\(*\\) as total FROM spells; SELECT level, COUNT\\(*\\) as n FROM spells GROUP BY level ORDER BY level;\")",
+      "Bash(taskkill /F /IM Spellbook.exe /T)",
+      "Bash(cmd /c \"taskkill /F /IM Spellbook.exe /T 2>nul & taskkill /F /IM electron.exe /T 2>nul & wmic process where \"\"name like ''%spell%'' or name like ''%electron%''\"\" get name,processid 2>nul\")",
+      "Bash(gh api:*)",
+      "Bash(gh release:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(curl -sI \"https://github.com/WiseLibs/better-sqlite3/releases/download/v12.8.0/better-sqlite3-v12.8.0-electron-v128-win32-x64.tar.gz\")",
+      "Bash(powershell -Command \"Invoke-WebRequest -Uri ''https://github.com/WiseLibs/better-sqlite3/releases/download/v12.8.0/better-sqlite3-v12.8.0-electron-v128-win32-x64.tar.gz'' -OutFile ''C:\\\\Users\\\\robin\\\\Claude\\\\node_modules\\\\better-sqlite3\\\\build\\\\Release\\\\prebuilt.tar.gz''\")",
+      "Bash(cmd.exe /c \"C:\\\\Windows\\\\System32\\\\tar.exe -xzf C:\\\\Users\\\\robin\\\\Claude\\\\node_modules\\\\better-sqlite3\\\\build\\\\Release\\\\prebuilt.tar.gz -C C:\\\\Users\\\\robin\\\\Claude\\\\node_modules\\\\better-sqlite3\\\\build\\\\Release --strip-components=2\")",
+      "Bash(powershell -Command \":*)",
+      "Bash(powershell -Command \"Stop-Process -Name ''Spellbook'' -Force -ErrorAction SilentlyContinue; Stop-Process -Name ''electron'' -Force -ErrorAction SilentlyContinue; Start-Sleep 2; Remove-Item -Recurse -Force ''C:\\\\Users\\\\robin\\\\Claude\\\\dist'' -ErrorAction SilentlyContinue; Write-Host ''done''\")",
+      "Bash(node node_modules/electron/install.js)",
+      "Bash(xargs grep:*)",
+      "Bash(for f:*)",
+      "Bash(do)",
+      "Bash(echo \"===== $f =====\")",
+      "Read(//c/Users/robin/Claude/**)",
+      "Bash(done)",
+      "Read(//c/Users/robin/Downloads/**)"
     ]
   }
 }

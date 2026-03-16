@@ -19,16 +19,20 @@
   font-size: 28px;
   color: var(--color-accent-gold-dim);
   margin-bottom: 12px;
+  text-shadow: 0 0 20px rgba(201, 168, 76, 0.3);
 }
 
 .emptyTitle {
-  font-size: 15px;
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
   color: var(--color-text-secondary);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  letter-spacing: 0.06em;
 }
 
 .emptyText {
-  font-size: 12px;
+  font-family: 'Crimson Text', serif;
+  font-size: 13px;
   color: var(--color-text-muted);
   font-style: italic;
   line-height: 1.6;
@@ -37,30 +41,32 @@
 
 .createBtn {
   margin-top: 16px;
-  padding: 6px 16px;
-  font-size: 13px;
+  padding: 7px 20px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
   color: var(--color-accent-gold);
   border: var(--border-ornate);
-  border-radius: var(--border-radius);
-  font-family: inherit;
-  transition: background 0.15s;
+  border-radius: 2px;
+  transition: background 0.15s, box-shadow 0.15s;
 }
 
 .createBtn:hover {
   background: var(--color-accent-gold-glow);
+  box-shadow: 0 0 12px rgba(201, 168, 76, 0.15);
 }
 
 .skeletonRow {
-  height: 40px;
-  margin: 2px 12px;
+  height: 36px;
+  margin: 3px 12px;
   background: var(--color-bg-hover);
-  border-radius: var(--border-radius);
-  animation: shimmer 1.4s infinite;
+  border-radius: 2px;
+  animation: shimmer 1.6s infinite;
 }
 
 @keyframes shimmer {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
 }
 
 .summary {
@@ -74,9 +80,10 @@
 }
 
 .summaryLabel {
-  font-size: 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--color-text-muted);
   flex-shrink: 0;
 }
@@ -88,8 +95,9 @@
 }
 
 .summaryPip {
-  font-size: 10px;
-  padding: 1px 6px;
+  font-family: 'Crimson Text', serif;
+  font-size: 11px;
+  padding: 1px 7px;
   border-radius: 10px;
   border: 1px solid var(--color-accent-gold-dim);
   color: var(--color-text-muted);
@@ -115,7 +123,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 5px 14px;
-  background: var(--color-bg-secondary);
+  background: linear-gradient(90deg, var(--color-bg-secondary), var(--color-bg-primary));
   border-bottom: var(--border-subtle);
   position: sticky;
   top: 0;
@@ -123,16 +131,19 @@
 }
 
 .groupLabel {
-  font-size: 11px;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--color-accent-gold-dim);
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .groupCount {
-  font-size: 10px;
+  font-family: 'Crimson Text', serif;
+  font-size: 11px;
   color: var(--color-text-muted);
+  font-style: italic;
 }
 
 .spellRow {
@@ -140,7 +151,7 @@
   align-items: center;
   gap: 6px;
   padding: 7px 12px;
-  border-bottom: var(--border-subtle);
+  border-bottom: 1px solid rgba(42, 28, 14, 0.8);
   cursor: pointer;
   transition: background 0.12s;
   user-select: none;
@@ -155,7 +166,7 @@
 }
 
 .prepareBtn {
-  font-size: 14px;
+  font-size: 13px;
   width: 20px;
   height: 20px;
   display: flex;
@@ -167,16 +178,15 @@
   transition: color 0.15s;
 }
 
-.prepareBtn:hover {
-  color: var(--color-accent-gold);
-}
+.prepareBtn:hover { color: var(--color-accent-gold); }
 
 .prepareBtn.prepared {
   color: var(--color-accent-gold);
+  text-shadow: 0 0 6px rgba(201, 168, 76, 0.4);
 }
 
 .cantripDot {
-  font-size: 10px;
+  font-size: 9px;
   width: 20px;
   height: 20px;
   display: flex;
@@ -188,17 +198,17 @@
 
 .spellName {
   flex: 1;
-  font-size: 13px;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
   color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+  letter-spacing: 0.02em;
 }
 
-.selectedName {
-  color: var(--color-accent-gold-bright);
-}
+.selectedName { color: var(--color-accent-gold-bright); }
 
 .spellMeta {
   display: flex;
@@ -214,12 +224,10 @@
   transition: color 0.15s;
 }
 
-.favBtn:hover {
-  color: var(--color-accent-gold);
-}
-
+.favBtn:hover { color: var(--color-accent-gold); }
 .favBtn.favorited {
   color: var(--color-accent-gold);
+  text-shadow: 0 0 6px rgba(201, 168, 76, 0.4);
 }
 
 .removeBtn {
@@ -231,15 +239,12 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border-radius: var(--border-radius);
+  border-radius: 2px;
   transition: color 0.15s, background 0.15s;
   opacity: 0;
 }
 
-.spellRow:hover .removeBtn {
-  opacity: 1;
-}
-
+.spellRow:hover .removeBtn { opacity: 1; }
 .removeBtn:hover {
   color: #d46a4a;
   background: rgba(212, 106, 74, 0.15);

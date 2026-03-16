@@ -13,6 +13,7 @@ const api = {
   removeSpellFromCharacter: (charId: number, spellId: number): Promise<void> => ipcRenderer.invoke('character_spells:remove', charId, spellId),
   toggleSpellPrepared: (charId: number, spellId: number): Promise<boolean> => ipcRenderer.invoke('character_spells:togglePrepared', charId, spellId),
   getCharacterSpells: (charId: number): Promise<CharacterSpellRow[]> => ipcRenderer.invoke('character_spells:getAll', charId),
+  getSpellSuggestions: (query: string): Promise<{ id: number; name: string }[]> => ipcRenderer.invoke('spells:suggestions', query),
 }
 
 contextBridge.exposeInMainWorld('api', api)

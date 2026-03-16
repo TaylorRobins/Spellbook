@@ -5,6 +5,8 @@ import styles from './SpellDetail.module.css'
 interface SpellDetailProps {
   spell: Spell
   onToggleFavorite: (id: number) => void
+  fullWidth?: boolean
+  onBack?: () => void
 }
 
 interface StatRowProps {
@@ -22,9 +24,9 @@ function StatRow({ label, value }: StatRowProps): JSX.Element | null {
   )
 }
 
-export function SpellDetail({ spell, onToggleFavorite }: SpellDetailProps): JSX.Element {
+export function SpellDetail({ spell, onToggleFavorite, fullWidth, onBack }: SpellDetailProps): JSX.Element {
   return (
-    <div className={styles.detail}>
+    <div className={fullWidth ? styles.detailFull : styles.detail}>
       {/* Header */}
       <div
         className={styles.header}
@@ -32,6 +34,11 @@ export function SpellDetail({ spell, onToggleFavorite }: SpellDetailProps): JSX.
       >
         <div className={styles.headerAccent} />
         <div className={styles.headerContent}>
+          {onBack && (
+            <button className={styles.backBtn} onClick={onBack}>
+              ← Back to list
+            </button>
+          )}
           <div className={styles.titleRow}>
             <h1 className={styles.name}>{spell.name}</h1>
             <button
@@ -59,13 +66,30 @@ export function SpellDetail({ spell, onToggleFavorite }: SpellDetailProps): JSX.
       {/* Body */}
       <div className={styles.body}>
         {/* Stat block */}
-        <div className={styles.statBlock}>
-          <StatRow label="Cast" value={spell.cast_time} />
-          <StatRow label="Components" value={spell.components} />
-          <StatRow label="Range" value={spell.range} />
-          <StatRow label="Area" value={spell.area} />
-          <StatRow label="Duration" value={spell.duration} />
-          <StatRow label="Save" value={spell.saving_throw} />
+        <div className={fullWidth ? styles.statBlockTwoCol : styles.statBlock}>
+          {fullWidth ? (
+            <>
+              <div className={styles.statCol}>
+                <StatRow label="Cast" value={spell.cast_time} />
+                <StatRow label="Components" value={spell.components} />
+                <StatRow label="Save" value={spell.saving_throw} />
+              </div>
+              <div className={styles.statCol}>
+                <StatRow label="Range" value={spell.range} />
+                <StatRow label="Area" value={spell.area} />
+                <StatRow label="Duration" value={spell.duration} />
+              </div>
+            </>
+          ) : (
+            <>
+              <StatRow label="Cast" value={spell.cast_time} />
+              <StatRow label="Components" value={spell.components} />
+              <StatRow label="Range" value={spell.range} />
+              <StatRow label="Area" value={spell.area} />
+              <StatRow label="Duration" value={spell.duration} />
+              <StatRow label="Save" value={spell.saving_throw} />
+            </>
+          )}
         </div>
 
         {/* Divider */}

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Sidebar } from './components/Sidebar/Sidebar'
 import { SearchBar } from './components/SearchBar/SearchBar'
 import { SpellList } from './components/SpellList/SpellList'
@@ -8,15 +8,54 @@ import { CharacterModal } from './components/CharacterModal/CharacterModal'
 import { useSpells } from './hooks/useSpells'
 import { useCharacters } from './hooks/useCharacters'
 import { useSpellbook } from './hooks/useSpellbook'
-import type { SidebarView, Spell } from './types/spell'
+import type { SidebarView, Spell, SpellRow } from './types/spell'
+import { parseSpell } from './types/spell'
 import type { Character } from './types/character'
 import styles from './App.module.css'
+
+function SplitViewIcon(): JSX.Element {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <rect x="1" y="2" width="7" height="14" rx="1"/>
+      <rect x="10" y="2" width="7" height="14" rx="1"/>
+    </svg>
+  )
+}
+
+function FullViewIcon(): JSX.Element {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <rect x="1" y="2" width="16" height="14" rx="1"/>
+    </svg>
+  )
+}
 
 export default function App(): JSX.Element {
   const [sidebarView, setSidebarView] = useState<SidebarView>({ type: 'all' })
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null)
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
+  const [layout, setLayout] = useState<'split' | 'full'>(() =>
+    (localStorage.getItem('spellbook-layout') as 'split' | 'full') ?? 'split'
+  )
+
+  const toggleLayout = useCallback(() => {
+    setLayout(l => {
+      const next = l === 'split' ? 'full' : 'split'
+      localStorage.setItem('spellbook-layout', next)
+      return next
+    })
+  }, [])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape' && layout === 'full' && selectedSpell) {
+        setSelectedSpell(null)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [layout, selectedSpell])
 
   const {
     characters,
@@ -60,6 +99,11 @@ export default function App(): JSX.Element {
     setSelectedSpell(spell)
   }, [])
 
+  const handleSelectSuggestion = useCallback(async (id: number) => {
+    const row = await window.api.getSpellById(id)
+    if (row) setSelectedSpell(parseSpell(row as SpellRow))
+  }, [])
+
   const handleDeleteCharacter = useCallback(
     async (id: number) => {
       if (!window.confirm('Delete this character? Their spellbook will be lost.')) return
@@ -95,14 +139,61 @@ export default function App(): JSX.Element {
         onDeleteCharacter={handleDeleteCharacter}
       />
       <div className={styles.mainPane}>
-        <SearchBar value={searchQuery} onChange={setSearchQuery} />
+        <div className={styles.toolbar}>
+          <SearchBar value={searchQuery} onChange={setSearchQuery} onSelectSuggestion={handleSelectSuggestion} />
+          <button
+            className={styles.layoutToggle}
+            onClick={toggleLayout}
+            title={layout === 'split' ? 'Switch to full view (hides list when spell is open)' : 'Switch to split view (list and detail side by side)'}
+          >
+            {layout === 'split' ? <FullViewIcon /> : <SplitViewIcon />}
+          </button>
+        </div>
         <div className={styles.contentArea}>
-          {isSpellbookView ? (
+          {layout === 'split' ? (
+            <>
+              {isSpellbookView ? (
+                <SpellbookView
+                  characterSpells={characterSpells}
+                  loading={spellbookLoading}
+                  activeCharacter={activeCharacter}
+                  selectedId={selectedSpell?.id ?? null}
+                  onSelect={handleSelectSpell}
+                  onToggleFavorite={handleToggleFavorite}
+                  onTogglePrepared={togglePrepared}
+                  onRemove={removeSpell}
+                  onNewCharacter={() => setModalMode('create')}
+                />
+              ) : (
+                <SpellList
+                  spells={spells}
+                  loading={loading}
+                  selectedId={selectedSpell?.id ?? null}
+                  onSelect={handleSelectSpell}
+                  onToggleFavorite={handleToggleFavorite}
+                  spellbookIds={spellbookIds}
+                  hasActiveCharacter={activeCharacterId !== null}
+                  onAddToSpellbook={addSpell}
+                  onRemoveFromSpellbook={removeSpell}
+                />
+              )}
+              {selectedSpell && (
+                <SpellDetail spell={selectedSpell} onToggleFavorite={handleToggleFavorite} />
+              )}
+            </>
+          ) : selectedSpell ? (
+            <SpellDetail
+              spell={selectedSpell}
+              onToggleFavorite={handleToggleFavorite}
+              fullWidth
+              onBack={() => setSelectedSpell(null)}
+            />
+          ) : isSpellbookView ? (
             <SpellbookView
               characterSpells={characterSpells}
               loading={spellbookLoading}
               activeCharacter={activeCharacter}
-              selectedId={selectedSpell?.id ?? null}
+              selectedId={null}
               onSelect={handleSelectSpell}
               onToggleFavorite={handleToggleFavorite}
               onTogglePrepared={togglePrepared}
@@ -113,7 +204,7 @@ export default function App(): JSX.Element {
             <SpellList
               spells={spells}
               loading={loading}
-              selectedId={selectedSpell?.id ?? null}
+              selectedId={null}
               onSelect={handleSelectSpell}
               onToggleFavorite={handleToggleFavorite}
               spellbookIds={spellbookIds}
@@ -121,9 +212,6 @@ export default function App(): JSX.Element {
               onAddToSpellbook={addSpell}
               onRemoveFromSpellbook={removeSpell}
             />
-          )}
-          {selectedSpell && (
-            <SpellDetail spell={selectedSpell} onToggleFavorite={handleToggleFavorite} />
           )}
         </div>
       </div>

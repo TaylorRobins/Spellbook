@@ -67,3 +67,4 @@ export type SidebarView =
   | { type: 'tradition'; tradition: Tradition }
   | { type: 'level'; level: number }
   | { type: 'spellbook' }
+  | { type: 'favorites' }

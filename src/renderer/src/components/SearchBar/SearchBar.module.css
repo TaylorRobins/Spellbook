@@ -3,15 +3,29 @@
   align-items: center;
   gap: 10px;
   height: var(--searchbar-height);
-  padding: 0 16px;
+  padding: 0 18px;
   background: var(--color-bg-secondary);
-  border-bottom: var(--border-ornate);
   flex-shrink: 0;
+  position: relative;
+  flex: 1;
+}
+
+/* Subtle inset effect */
+.searchBar::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 18px;
+  right: 18px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent-gold-dim) 20%, var(--color-accent-gold-dim) 80%, transparent);
+  opacity: 0.4;
 }
 
 .icon {
   color: var(--color-accent-gold-dim);
   flex-shrink: 0;
+  opacity: 0.7;
 }
 
 .input {
@@ -20,24 +34,62 @@
   border: none;
   outline: none;
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-family: 'Crimson Text', serif;
+  font-size: 16px;
   letter-spacing: 0.02em;
 }
 
 .input::placeholder {
   color: var(--color-text-muted);
   font-style: italic;
+  font-size: 15px;
 }
 
 .clearButton {
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: 11px;
   padding: 4px 6px;
-  border-radius: var(--border-radius);
+  border-radius: 2px;
   transition: color 0.15s, background 0.15s;
+  font-family: 'Cinzel', serif;
 }
 
 .clearButton:hover {
   color: var(--color-text-secondary);
   background: var(--color-bg-hover);
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  background: var(--color-bg-tertiary);
+  border: var(--border-ornate);
+  border-top: none;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.suggestion {
+  padding: 8px 18px;
+  font-family: 'Crimson Text', serif;
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.suggestion strong {
+  color: var(--color-accent-gold);
+  font-weight: 600;
+}
+
+.suggestion.active,
+.suggestion:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
 }
