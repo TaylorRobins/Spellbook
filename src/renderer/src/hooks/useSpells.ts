@@ -3,7 +3,7 @@ import type { SidebarView, Spell } from '../types/spell'
 import { parseSpell } from '../types/spell'
 import type { SpellRow } from '../types/spell'
 
-export function useSpells(view: SidebarView, search: string) {
+export function useSpells(view: SidebarView, search: string, tagIds: number[] = []) {
   const [spells, setSpells] = useState<Spell[]>([])
   const [loading, setLoading] = useState(true)
   const [debouncedSearch, setDebouncedSearch] = useState(search)
@@ -14,7 +14,7 @@ export function useSpells(view: SidebarView, search: string) {
   }, [search])
 
   useEffect(() => {
-    if (view.type === 'spellbook') {
+    if (view.type === 'spellbook' || view.type === 'settings') {
       setSpells([])
       setLoading(false)
       return
@@ -27,6 +27,7 @@ export function useSpells(view: SidebarView, search: string) {
     if (view.type === 'tradition') filters.tradition = view.tradition
     if (view.type === 'level') filters.level = view.level
     if (view.type === 'favorites') filters.favorites = true
+    if (tagIds.length > 0) filters.tagIds = tagIds
 
     window.api
       .getSpells(filters as Parameters<typeof window.api.getSpells>[0])
@@ -35,7 +36,7 @@ export function useSpells(view: SidebarView, search: string) {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [view, debouncedSearch])
+  }, [view, debouncedSearch, tagIds])
 
   const toggleFavorite = useCallback(
     async (id: number): Promise<boolean> => {

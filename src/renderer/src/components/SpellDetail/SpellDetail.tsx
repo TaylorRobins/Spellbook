@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import DOMPurify from 'dompurify'
-import type { Spell } from '../../types/spell'
+import type { Spell, SpellTag } from '../../types/spell'
 import { TraditionBadge } from '../shared/TraditionBadge'
 import styles from './SpellDetail.module.css'
 
@@ -79,6 +79,8 @@ interface SpellDetailProps {
   fullWidth?: boolean
   onBack?: () => void
   style?: React.CSSProperties
+  allTags?: SpellTag[]
+  onSetSpellTag?: (tagId: number, add: boolean) => Promise<void>
 }
 
 interface StatRowProps {
@@ -96,8 +98,11 @@ function StatRow({ label, value }: StatRowProps): JSX.Element | null {
   )
 }
 
-export function SpellDetail({ spell, onToggleFavorite, fullWidth, onBack, style }: SpellDetailProps): JSX.Element {
+export function SpellDetail({ spell, onToggleFavorite, fullWidth, onBack, style, allTags, onSetSpellTag }: SpellDetailProps): JSX.Element {
   const descHtml = useMemo(() => prepareDescription(spell.description), [spell.description])
+  const [tagMenuOpen, setTagMenuOpen] = useState(false)
+  const spellTags = spell.tags ?? []
+  const availableTags = (allTags ?? []).filter(t => !spellTags.find(s => s.id === t.id))
 
   return (
     <div className={fullWidth ? styles.detailFull : styles.detail} style={style}>
@@ -171,6 +176,50 @@ export function SpellDetail({ spell, onToggleFavorite, fullWidth, onBack, style 
 
         {/* Description */}
         <div className={styles.description} dangerouslySetInnerHTML={{ __html: descHtml }} />
+
+        {/* Tags */}
+        {(spellTags.length > 0 || (allTags && allTags.length > 0)) && (
+          <div className={styles.tagsSection}>
+            <div className={styles.tagsRow}>
+              {spellTags.map(tag => (
+                <button
+                  key={tag.id}
+                  className={styles.tagPill}
+                  style={{ borderColor: tag.color, color: tag.color, background: `${tag.color}18` }}
+                  onClick={() => onSetSpellTag?.(tag.id, false)}
+                  title={`Remove tag: ${tag.name}`}
+                >
+                  {tag.name} ✕
+                </button>
+              ))}
+              {onSetSpellTag && availableTags.length > 0 && (
+                <div className={styles.tagAddWrap}>
+                  <button
+                    className={styles.tagAddBtn}
+                    onClick={() => setTagMenuOpen(o => !o)}
+                    title="Add tag"
+                  >
+                    + Tag
+                  </button>
+                  {tagMenuOpen && (
+                    <div className={styles.tagDropdown}>
+                      {availableTags.map(tag => (
+                        <button
+                          key={tag.id}
+                          className={styles.tagDropdownItem}
+                          onClick={() => { onSetSpellTag(tag.id, true); setTagMenuOpen(false) }}
+                        >
+                          <span className={styles.tagDropdownDot} style={{ background: tag.color }} />
+                          {tag.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Heightened effects */}
         {spell.heightened_effects.length > 0 && (

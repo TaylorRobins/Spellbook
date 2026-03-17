@@ -1,4 +1,6 @@
 :root {
+  --font-scale: 1;
+
   /* Backgrounds — dark leather */
   --color-bg-primary: #0d0904;
   --color-bg-secondary: #150e07;
@@ -62,4 +64,37 @@
   /* Shadows */
   --shadow-panel: 0 2px 12px rgba(0, 0, 0, 0.5);
   --shadow-card: inset 0 1px 0 rgba(201, 168, 76, 0.04);
+}
+
+/* ── Light Parchment theme ── */
+:root.theme-light {
+  /* Backgrounds */
+  --color-bg-primary: #f5f0e8;
+  --color-bg-secondary: #ede5d0;
+  --color-bg-tertiary: #e5dcc5;
+  --color-bg-hover: #ddd3b5;
+  --color-bg-selected: #d5c89e;
+  --color-bg-card: #f0ead8;
+
+  /* Parchment panel — slightly darker to contrast with light main bg */
+  --color-parchment: #ddd0a8;
+  --color-parchment-dark: #cfc090;
+  --color-parchment-light: #ede5c8;
+  --color-parchment-text: #2c1810;
+  --color-parchment-text-secondary: #5c3820;
+  --color-parchment-text-muted: #8b6040;
+  --color-parchment-border: rgba(101, 67, 33, 0.35);
+
+  /* Text */
+  --color-text-primary: #2c1810;
+  --color-text-secondary: #5c3820;
+  --color-text-muted: #8b5a38;
+  --color-text-heading: #1a0e08;
+
+  /* Borders */
+  --border-subtle: 1px solid #c8b47e;
+
+  /* Shadows */
+  --shadow-panel: 0 2px 12px rgba(0, 0, 0, 0.12);
+  --shadow-card: inset 0 1px 0 rgba(201, 168, 76, 0.08);
 }

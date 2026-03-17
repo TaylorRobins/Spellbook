@@ -66,7 +66,7 @@
   padding: 7px 14px;
   text-align: left;
   font-family: 'Cinzel', serif;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   font-size: 11px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -77,7 +77,7 @@
 
 .navItem:hover {
   background: rgba(201, 168, 76, 0.07);
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
 }
 
 .navItem:active {
@@ -113,7 +113,7 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-accent-gold-dim);
-  opacity: 0.7;
+  opacity: 0.9;
 }
 
 .traditionDot {
@@ -174,17 +174,70 @@
   margin-top: 4px;
 }
 
-.tools {
-  padding: 6px 10px 2px;
-  border-top: 1px solid rgba(201, 168, 76, 0.12);
+.tagItem {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 5px 14px;
+  text-align: left;
+  font-family: 'Cinzel', serif;
+  color: var(--color-text-secondary);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: background 0.15s ease, color 0.15s ease;
+  border-left: 3px solid transparent;
+}
+
+.tagItem:hover {
+  background: rgba(201, 168, 76, 0.07);
+  color: var(--color-text-primary);
+}
+
+.tagItem.tagActive {
+  background: rgba(201, 168, 76, 0.1);
+  color: var(--color-text-primary);
+  border-left-color: var(--color-accent-gold);
+}
+
+.tagDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tagName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tagCount {
+  font-size: 9px;
+  color: var(--color-text-muted);
+  background: rgba(201, 168, 76, 0.08);
+  border-radius: 8px;
+  padding: 1px 5px;
+  flex-shrink: 0;
+}
+
+.tagItem.tagActive .tagCount {
+  background: rgba(201, 168, 76, 0.18);
+  color: var(--color-accent-gold-dim);
+}
+
+.settingsRow {
+  padding: 4px 10px 2px;
+  border-top: 1px solid rgba(201, 168, 76, 0.12);
   position: relative;
   z-index: 1;
 }
 
-.toolBtn {
+.settingsBtn {
   width: 100%;
   padding: 5px 8px;
   text-align: left;
@@ -192,16 +245,22 @@
   font-size: 9px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-text-muted);
-  opacity: 0.6;
+  color: var(--color-text-secondary);
+  opacity: 0.8;
   transition: opacity 0.15s, color 0.15s;
   border-radius: 2px;
 }
 
-.toolBtn:hover {
+.settingsBtn:hover {
   opacity: 1;
   color: var(--color-accent-gold);
 }
+
+.settingsBtnActive {
+  opacity: 1;
+  color: var(--color-accent-gold-bright);
+}
+
 
 .wizard {
   display: flex;

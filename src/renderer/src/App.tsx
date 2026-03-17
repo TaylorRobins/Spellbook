@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary'
 import { Sidebar } from './components/Sidebar/Sidebar'
 import { SearchBar } from './components/SearchBar/SearchBar'
 import type { SearchBarHandle } from './components/SearchBar/SearchBar'
@@ -8,13 +9,17 @@ import { SpellbookView } from './components/SpellbookView/SpellbookView'
 import { CharacterModal } from './components/CharacterModal/CharacterModal'
 import { UpdateModal } from './components/UpdateModal/UpdateModal'
 import { ShortcutsModal } from './components/ShortcutsModal/ShortcutsModal'
+import { SettingsPage } from './components/SettingsPage/SettingsPage'
 import { useSpells } from './hooks/useSpells'
 import { useCharacters } from './hooks/useCharacters'
 import { useSpellbook } from './hooks/useSpellbook'
+import { useSettings } from './hooks/useSettings'
+import { useTags } from './hooks/useTags'
 import type { SidebarView, Spell, SpellRow } from './types/spell'
 import { parseSpell } from './types/spell'
 import type { Character } from './types/character'
 import styles from './App.module.css'
+import errorStyles from './components/ErrorBoundary/ErrorBoundary.module.css'
 
 function SplitViewIcon(): JSX.Element {
   return (
@@ -33,23 +38,57 @@ function FullViewIcon(): JSX.Element {
   )
 }
 
+const appCrashFallback = (
+  <div className={errorStyles.appCrash}>
+    <div className={errorStyles.icon}>✦</div>
+    <div className={errorStyles.title}>The Grimoire has lost its enchantment</div>
+    <div className={errorStyles.message}>An unexpected error has disrupted the weave.</div>
+    <button className={errorStyles.reloadBtn} onClick={() => window.location.reload()}>
+      Reload App
+    </button>
+  </div>
+)
+
 export default function App(): JSX.Element {
-  const [sidebarView, setSidebarView] = useState<SidebarView>({ type: 'all' })
+  const [sidebarView, setSidebarView] = useState<SidebarView>(() => {
+    // Apply default tradition from settings on first launch
+    try {
+      const raw = localStorage.getItem('spellbook-settings')
+      if (raw) {
+        const s = JSON.parse(raw) as { defaultTradition?: string }
+        if (s.defaultTradition) return { type: 'tradition', tradition: s.defaultTradition as SidebarView extends { type: 'tradition'; tradition: infer T } ? T : never }
+      }
+    } catch { /* ignore */ }
+    return { type: 'all' }
+  })
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null)
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
   const [appUpdateState, setAppUpdateState] = useState<null | { type: 'downloading'; percent: number } | { type: 'ready'; version: string } | { type: 'uptodate' }>(null)
-  const [layout, setLayout] = useState<'split' | 'full'>(() =>
-    (localStorage.getItem('spellbook-layout') as 'split' | 'full') ?? 'split'
-  )
+  const [layout, setLayout] = useState<'split' | 'full'>(() => {
+    const saved = localStorage.getItem('spellbook-layout')
+    if (saved) return saved as 'split' | 'full'
+    try {
+      const raw = localStorage.getItem('spellbook-settings')
+      if (raw) {
+        const s = JSON.parse(raw) as { defaultLayout?: string }
+        if (s.defaultLayout) return s.defaultLayout as 'split' | 'full'
+      }
+    } catch { /* ignore */ }
+    return 'split'
+  })
   const [splitRatio, setSplitRatio] = useState(() =>
     parseFloat(localStorage.getItem('spellbook-split') ?? '0.38')
   )
   const [focusedIndex, setFocusedIndex] = useState(-1)
   const searchBarRef = useRef<SearchBarHandle>(null)
   const contentAreaRef = useRef<HTMLDivElement>(null)
+
+  const { settings, updateSetting } = useSettings()
+  const { tags, spellTagsById, tagCounts, createTag, updateTag, deleteTag, setSpellTag, refresh: refreshTags } = useTags()
 
   const toggleLayout = useCallback(() => {
     setLayout(l => {
@@ -82,7 +121,7 @@ export default function App(): JSX.Element {
     deleteCharacter,
   } = useCharacters()
 
-  const { spells, loading, toggleFavorite } = useSpells(sidebarView, searchQuery)
+  const { spells, loading, toggleFavorite } = useSpells(sidebarView, searchQuery, selectedTagIds)
 
   const {
     characterSpells,
@@ -110,13 +149,37 @@ export default function App(): JSX.Element {
     setSelectedSpell(null)
   }, [])
 
-  const handleSelectSpell = useCallback((spell: Spell) => {
-    setSelectedSpell(spell)
-  }, [])
+  const handleSelectSpell = useCallback(async (spell: Spell) => {
+    // Attach current tags from our tag map
+    const spellWithTags = { ...spell, tags: spellTagsById[spell.id] ?? [] }
+    setSelectedSpell(spellWithTags)
+  }, [spellTagsById])
 
   const handleSelectSuggestion = useCallback(async (id: number) => {
     const row = await window.api.getSpellById(id)
-    if (row) setSelectedSpell(parseSpell(row as SpellRow))
+    if (row) {
+      const spell = parseSpell(row as SpellRow)
+      setSelectedSpell({ ...spell, tags: spellTagsById[spell.id] ?? [] })
+    }
+  }, [spellTagsById])
+
+  const handleSetSpellTag = useCallback(async (tagId: number, add: boolean) => {
+    if (!selectedSpell) return
+    await setSpellTag(selectedSpell.id, tagId, add)
+    // Update selected spell tags immediately
+    setSelectedSpell(prev => {
+      if (!prev) return null
+      const updated = add
+        ? [...(prev.tags ?? []), tags.find(t => t.id === tagId)!].filter(Boolean)
+        : (prev.tags ?? []).filter(t => t.id !== tagId)
+      return { ...prev, tags: updated }
+    })
+  }, [selectedSpell, setSpellTag, tags])
+
+  const handleTagToggle = useCallback((id: number) => {
+    setSelectedTagIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    )
   }, [])
 
   const handleDeleteCharacter = useCallback(
@@ -223,146 +286,178 @@ export default function App(): JSX.Element {
   }, [layout, selectedSpell, spells, focusedIndex, handleViewChange, handleSelectSpell, handleToggleFavorite])
 
   const isSpellbookView = sidebarView.type === 'spellbook'
+  const isSettingsView = sidebarView.type === 'settings'
+
+  const renderSpellDetail = (spell: Spell, props?: { fullWidth?: boolean; onBack?: () => void; style?: React.CSSProperties }): JSX.Element => (
+    <ErrorBoundary componentName="SpellDetail" onError={(err) => console.error(`[SpellDetail] spell.id=${spell.id}`, err)}>
+      <SpellDetail
+        spell={spell}
+        onToggleFavorite={handleToggleFavorite}
+        allTags={tags}
+        onSetSpellTag={handleSetSpellTag}
+        {...props}
+      />
+    </ErrorBoundary>
+  )
 
   return (
-    <div className={styles.appShell}>
-      <Sidebar
-        activeView={sidebarView}
-        onViewChange={handleViewChange}
-        characters={characters}
-        activeCharacterId={activeCharacterId}
-        onCharacterChange={setActiveCharacterId}
-        onNewCharacter={() => setModalMode('create')}
-        onEditCharacter={() => setModalMode('edit')}
-        onDeleteCharacter={handleDeleteCharacter}
-        onOpenUpdateModal={() => setShowUpdateModal(true)}
-      />
-      <div className={styles.mainPane}>
-        {appUpdateState && (
-          <div className={styles.updateBanner}>
-            <span className={styles.updateBannerText}>
-              {appUpdateState.type === 'downloading'
-                ? `Downloading update… ${appUpdateState.percent}%`
-                : appUpdateState.type === 'ready'
-                ? `Update v${appUpdateState.version} ready — restart to install`
-                : 'Already up to date'}
-            </span>
-            {appUpdateState.type === 'ready' && (
-              <button className={styles.updateBannerBtn} onClick={() => window.api.quitAndInstall()}>
-                Restart now
-              </button>
-            )}
-            <button className={styles.updateBannerDismiss} onClick={() => setAppUpdateState(null)}>✕</button>
+    <ErrorBoundary componentName="App" fallback={appCrashFallback}>
+      <div className={styles.appShell}>
+        <Sidebar
+          activeView={sidebarView}
+          onViewChange={handleViewChange}
+          characters={characters}
+          activeCharacterId={activeCharacterId}
+          onCharacterChange={setActiveCharacterId}
+          onNewCharacter={() => setModalMode('create')}
+          onEditCharacter={() => setModalMode('edit')}
+          onDeleteCharacter={handleDeleteCharacter}
+          tags={tags}
+          selectedTagIds={selectedTagIds}
+          tagCounts={tagCounts}
+          onTagToggle={handleTagToggle}
+        />
+        <div className={styles.mainPane}>
+          {appUpdateState && (
+            <div className={styles.updateBanner}>
+              <span className={styles.updateBannerText}>
+                {appUpdateState.type === 'downloading'
+                  ? `Downloading update… ${appUpdateState.percent}%`
+                  : appUpdateState.type === 'ready'
+                  ? `Update v${appUpdateState.version} ready — restart to install`
+                  : 'Already up to date'}
+              </span>
+              {appUpdateState.type === 'ready' && (
+                <button className={styles.updateBannerBtn} onClick={() => window.api.quitAndInstall()}>
+                  Restart now
+                </button>
+              )}
+              <button className={styles.updateBannerDismiss} onClick={() => setAppUpdateState(null)}>✕</button>
+            </div>
+          )}
+          <div className={styles.toolbar}>
+            <SearchBar ref={searchBarRef} value={searchQuery} onChange={setSearchQuery} onSelectSuggestion={handleSelectSuggestion} />
+            <button
+              className={styles.shortcutsBtn}
+              onClick={() => setShowShortcuts(true)}
+              title="Keyboard shortcuts (?)"
+            >
+              ?
+            </button>
+            <button
+              className={styles.layoutToggle}
+              onClick={toggleLayout}
+              title={layout === 'split' ? 'Switch to full view' : 'Switch to split view'}
+            >
+              {layout === 'split' ? <FullViewIcon /> : <SplitViewIcon />}
+            </button>
           </div>
-        )}
-        <div className={styles.toolbar}>
-          <SearchBar ref={searchBarRef} value={searchQuery} onChange={setSearchQuery} onSelectSuggestion={handleSelectSuggestion} />
-          <button
-            className={styles.shortcutsBtn}
-            onClick={() => setShowShortcuts(true)}
-            title="Keyboard shortcuts (?)"
-          >
-            ?
-          </button>
-          <button
-            className={styles.layoutToggle}
-            onClick={toggleLayout}
-            title={layout === 'split' ? 'Switch to full view (hides list when spell is open)' : 'Switch to split view (list and detail side by side)'}
-          >
-            {layout === 'split' ? <FullViewIcon /> : <SplitViewIcon />}
-          </button>
-        </div>
-        <div ref={contentAreaRef} className={styles.contentArea}>
-          {layout === 'split' ? (
-            <>
-              {isSpellbookView ? (
+          <div ref={contentAreaRef} className={styles.contentArea}>
+            {isSettingsView ? (
+              <ErrorBoundary componentName="SettingsPage">
+                <SettingsPage
+                  settings={settings}
+                  onUpdateSetting={updateSetting}
+                  tags={tags}
+                  onCreateTag={createTag}
+                  onUpdateTag={updateTag}
+                  onDeleteTag={deleteTag}
+                />
+              </ErrorBoundary>
+            ) : layout === 'split' ? (
+              <>
+                {isSpellbookView ? (
+                  <ErrorBoundary componentName="SpellbookView">
+                    <SpellbookView
+                      characterSpells={characterSpells}
+                      loading={spellbookLoading}
+                      activeCharacter={activeCharacter}
+                      selectedId={selectedSpell?.id ?? null}
+                      onSelect={handleSelectSpell}
+                      onToggleFavorite={handleToggleFavorite}
+                      onTogglePrepared={togglePrepared}
+                      onRemove={removeSpell}
+                      onNewCharacter={() => setModalMode('create')}
+                    />
+                  </ErrorBoundary>
+                ) : (
+                  <ErrorBoundary componentName="SpellList">
+                    <SpellList
+                      spells={spells}
+                      loading={loading}
+                      selectedId={selectedSpell?.id ?? null}
+                      onSelect={handleSelectSpell}
+                      onToggleFavorite={handleToggleFavorite}
+                      spellbookIds={spellbookIds}
+                      hasActiveCharacter={activeCharacterId !== null}
+                      onAddToSpellbook={addSpell}
+                      onRemoveFromSpellbook={removeSpell}
+                      focusedIndex={focusedIndex}
+                      spellTagsById={spellTagsById}
+                      style={selectedSpell ? { flex: 'none', width: `${splitRatio * 100}%`, minWidth: 200 } : undefined}
+                    />
+                  </ErrorBoundary>
+                )}
+                {!isSpellbookView && selectedSpell && (
+                  <div
+                    className={styles.dragHandle}
+                    onMouseDown={handleDragStart}
+                    onDoubleClick={() => {
+                      setSplitRatio(0.38)
+                      localStorage.setItem('spellbook-split', '0.38')
+                    }}
+                    title="Drag to resize · Double-click to reset"
+                  >
+                    <div className={styles.dragDots} />
+                  </div>
+                )}
+                {selectedSpell && renderSpellDetail(selectedSpell, { style: { flex: 1, minWidth: 300 } })}
+              </>
+            ) : selectedSpell ? (
+              renderSpellDetail(selectedSpell, { fullWidth: true, onBack: () => setSelectedSpell(null) })
+            ) : isSpellbookView ? (
+              <ErrorBoundary componentName="SpellbookView">
                 <SpellbookView
                   characterSpells={characterSpells}
                   loading={spellbookLoading}
                   activeCharacter={activeCharacter}
-                  selectedId={selectedSpell?.id ?? null}
+                  selectedId={null}
                   onSelect={handleSelectSpell}
                   onToggleFavorite={handleToggleFavorite}
                   onTogglePrepared={togglePrepared}
                   onRemove={removeSpell}
                   onNewCharacter={() => setModalMode('create')}
                 />
-              ) : (
+              </ErrorBoundary>
+            ) : (
+              <ErrorBoundary componentName="SpellList">
                 <SpellList
                   spells={spells}
                   loading={loading}
-                  selectedId={selectedSpell?.id ?? null}
+                  selectedId={null}
                   onSelect={handleSelectSpell}
                   onToggleFavorite={handleToggleFavorite}
                   spellbookIds={spellbookIds}
                   hasActiveCharacter={activeCharacterId !== null}
                   onAddToSpellbook={addSpell}
                   onRemoveFromSpellbook={removeSpell}
-                  focusedIndex={focusedIndex}
-                  style={selectedSpell ? { flex: 'none', width: `${splitRatio * 100}%`, minWidth: 200 } : undefined}
+                  spellTagsById={spellTagsById}
                 />
-              )}
-              {!isSpellbookView && selectedSpell && (
-                <div
-                  className={styles.dragHandle}
-                  onMouseDown={handleDragStart}
-                  onDoubleClick={() => {
-                    setSplitRatio(0.38)
-                    localStorage.setItem('spellbook-split', '0.38')
-                  }}
-                  title="Drag to resize · Double-click to reset"
-                >
-                  <div className={styles.dragDots} />
-                </div>
-              )}
-              {selectedSpell && (
-                <SpellDetail spell={selectedSpell} onToggleFavorite={handleToggleFavorite} style={{ flex: 1, minWidth: 300 }} />
-              )}
-            </>
-          ) : selectedSpell ? (
-            <SpellDetail
-              spell={selectedSpell}
-              onToggleFavorite={handleToggleFavorite}
-              fullWidth
-              onBack={() => setSelectedSpell(null)}
-            />
-          ) : isSpellbookView ? (
-            <SpellbookView
-              characterSpells={characterSpells}
-              loading={spellbookLoading}
-              activeCharacter={activeCharacter}
-              selectedId={null}
-              onSelect={handleSelectSpell}
-              onToggleFavorite={handleToggleFavorite}
-              onTogglePrepared={togglePrepared}
-              onRemove={removeSpell}
-              onNewCharacter={() => setModalMode('create')}
-            />
-          ) : (
-            <SpellList
-              spells={spells}
-              loading={loading}
-              selectedId={null}
-              onSelect={handleSelectSpell}
-              onToggleFavorite={handleToggleFavorite}
-              spellbookIds={spellbookIds}
-              hasActiveCharacter={activeCharacterId !== null}
-              onAddToSpellbook={addSpell}
-              onRemoveFromSpellbook={removeSpell}
-            />
-          )}
+              </ErrorBoundary>
+            )}
+          </div>
         </div>
+        {modalMode !== null && (
+          <CharacterModal
+            mode={modalMode}
+            character={modalMode === 'edit' ? activeCharacter : null}
+            onSave={handleModalSave}
+            onClose={() => setModalMode(null)}
+          />
+        )}
+        {showUpdateModal && <UpdateModal onClose={() => setShowUpdateModal(false)} />}
+        {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
       </div>
-      {modalMode !== null && (
-        <CharacterModal
-          mode={modalMode}
-          character={modalMode === 'edit' ? activeCharacter : null}
-          onSave={handleModalSave}
-          onClose={() => setModalMode(null)}
-        />
-      )}
-      {showUpdateModal && <UpdateModal onClose={() => setShowUpdateModal(false)} />}
-      {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
-    </div>
+    </ErrorBoundary>
   )
 }

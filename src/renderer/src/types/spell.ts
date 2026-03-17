@@ -15,6 +15,12 @@ export interface HeightenedEffect {
   effect: string
 }
 
+export interface SpellTag {
+  id: number
+  name: string
+  color: string
+}
+
 export interface Spell {
   id: number
   name: string
@@ -30,6 +36,7 @@ export interface Spell {
   description: string
   heightened_effects: HeightenedEffect[]
   is_favorite: boolean
+  tags?: SpellTag[]
 }
 
 export interface SpellRow {
@@ -68,3 +75,4 @@ export type SidebarView =
   | { type: 'level'; level: number }
   | { type: 'spellbook' }
   | { type: 'favorites' }
+  | { type: 'settings' }

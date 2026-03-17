@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { SpellFilters, SpellRow, CharacterRow, CharacterSpellRow } from '../main/database'
+import type { SpellFilters, SpellRow, CharacterRow, CharacterSpellRow, TagRow, SpellTagAssignment } from '../main/database'
 import type { UpdateResult } from '../main/spell-updater'
 import type { AppUpdateEvent } from '../main/auto-update'
 
@@ -26,11 +26,26 @@ const api = {
 
   checkForAppUpdate: (): Promise<void> => ipcRenderer.invoke('app:checkUpdate'),
   quitAndInstall: (): Promise<void> => ipcRenderer.invoke('app:quitAndInstall'),
+  getAppVersion: (): Promise<string> => ipcRenderer.invoke('app:getVersion'),
   onAppUpdate: (cb: (event: AppUpdateEvent) => void): (() => void) => {
     const listener = (_: Electron.IpcRendererEvent, event: AppUpdateEvent): void => cb(event)
     ipcRenderer.on('app:update', listener)
     return () => ipcRenderer.removeListener('app:update', listener)
   },
+
+  // Tags
+  getTags: (): Promise<TagRow[]> => ipcRenderer.invoke('tags:getAll'),
+  createTag: (name: string, color: string): Promise<TagRow> => ipcRenderer.invoke('tags:create', name, color),
+  updateTag: (id: number, name: string, color: string): Promise<void> => ipcRenderer.invoke('tags:update', id, name, color),
+  deleteTag: (id: number): Promise<void> => ipcRenderer.invoke('tags:delete', id),
+  getAllSpellTagAssignments: (): Promise<SpellTagAssignment[]> => ipcRenderer.invoke('tags:getAllAssignments'),
+  getTagsForSpell: (spellId: number): Promise<TagRow[]> => ipcRenderer.invoke('tags:getForSpell', spellId),
+  setSpellTag: (spellId: number, tagId: number, add: boolean): Promise<void> => ipcRenderer.invoke('tags:setForSpell', spellId, tagId, add),
+
+  // Data management
+  resetUserData: (): Promise<void> => ipcRenderer.invoke('db:reset'),
+  exportData: (): Promise<boolean> => ipcRenderer.invoke('db:export'),
+  importData: (): Promise<boolean> => ipcRenderer.invoke('db:import'),
 }
 
 contextBridge.exposeInMainWorld('api', api)

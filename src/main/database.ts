@@ -161,6 +161,7 @@ function runMigrations(): void {
 
   // v7: settings key-value table + FTS5 virtual table
   if (currentVersion < 7) {
+
     db.exec(`
       CREATE TABLE IF NOT EXISTS settings (
         key   TEXT PRIMARY KEY,
@@ -201,6 +202,40 @@ function runMigrations(): void {
     `)
     db.pragma('user_version = 7')
   }
+
+  // v8: custom tags + spell_tags junction table, seed 7 default tags
+  if (currentVersion < 8) {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS tags (
+        id    INTEGER PRIMARY KEY AUTOINCREMENT,
+        name  TEXT NOT NULL UNIQUE,
+        color TEXT NOT NULL DEFAULT '#888888'
+      );
+      CREATE TABLE IF NOT EXISTS spell_tags (
+        spell_id INTEGER NOT NULL REFERENCES spells(id) ON DELETE CASCADE,
+        tag_id   INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+        PRIMARY KEY (spell_id, tag_id)
+      );
+    `)
+    const tagCount = (db.prepare('SELECT COUNT(*) as n FROM tags').get() as { n: number }).n
+    if (tagCount === 0) seedDefaultTags()
+    db.pragma('user_version = 8')
+  }
+}
+
+function seedDefaultTags(): void {
+  const insert = db.prepare('INSERT OR IGNORE INTO tags (name, color) VALUES (?, ?)')
+  const defaults = [
+    ['Combat', '#ef4444'],
+    ['Utility', '#3b82f6'],
+    ['Healing', '#22c55e'],
+    ['Social', '#a855f7'],
+    ['Buff', '#f59e0b'],
+    ['Debuff', '#f97316'],
+    ['Exploration', '#14b8a6'],
+  ]
+  const seed = db.transaction(() => { for (const [name, color] of defaults) insert.run(name, color) })
+  seed()
 }
 
 export interface SpellRow {
@@ -225,6 +260,20 @@ export interface SpellFilters {
   tradition?: string
   level?: number
   favorites?: boolean
+  tagIds?: number[]
+}
+
+export interface TagRow {
+  id: number
+  name: string
+  color: string
+}
+
+export interface SpellTagAssignment {
+  spell_id: number
+  id: number
+  name: string
+  color: string
 }
 
 export interface CharacterRow {
@@ -248,7 +297,7 @@ function buildFtsQuery(search: string): string {
 }
 
 export function querySpells(filters: SpellFilters): SpellRow[] {
-  // Extra conditions that apply in all paths (tradition + level filters)
+  // Extra conditions for alias-based queries (FTS + favorites paths)
   const extraConditions: string[] = []
   const extraParams: (string | number)[] = []
 
@@ -259,6 +308,12 @@ export function querySpells(filters: SpellFilters): SpellRow[] {
   if (filters.level !== undefined) {
     extraConditions.push(`s.level = ?`)
     extraParams.push(filters.level)
+  }
+  if (filters.tagIds?.length) {
+    for (const tagId of filters.tagIds) {
+      extraConditions.push(`EXISTS (SELECT 1 FROM spell_tags WHERE spell_id = s.id AND tag_id = ?)`)
+      extraParams.push(tagId)
+    }
   }
 
   // ── FTS path (search term present) ──────────────────────────────────────
@@ -287,7 +342,7 @@ export function querySpells(filters: SpellFilters): SpellRow[] {
     return db.prepare(sql).all(...extraParams) as SpellRow[]
   }
 
-  // Regular: tradition/level only (re-build without table alias for simple query)
+  // Regular: tradition/level/tags only
   const conditions: string[] = []
   const params: (string | number)[] = []
   if (filters.tradition) {
@@ -297,6 +352,12 @@ export function querySpells(filters: SpellFilters): SpellRow[] {
   if (filters.level !== undefined) {
     conditions.push(`level = ?`)
     params.push(filters.level)
+  }
+  if (filters.tagIds?.length) {
+    for (const tagId of filters.tagIds) {
+      conditions.push(`EXISTS (SELECT 1 FROM spell_tags WHERE spell_id = spells.id AND tag_id = ?)`)
+      params.push(tagId)
+    }
   }
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''
   return db.prepare(`SELECT * FROM spells ${where} ORDER BY level ASC, name ASC`).all(...params) as SpellRow[]
@@ -445,6 +506,129 @@ export function getSpellSuggestions(query: string): { id: number; name: string }
     ORDER BY CASE WHEN name LIKE ? THEN 0 ELSE 1 END, name ASC
     LIMIT 8
   `).all(`%${query}%`, `${query}%`) as { id: number; name: string }[]
+}
+
+export function getAllTags(): TagRow[] {
+  return db.prepare('SELECT * FROM tags ORDER BY name ASC').all() as TagRow[]
+}
+
+export function createTag(name: string, color: string): TagRow {
+  const result = db.prepare('INSERT INTO tags (name, color) VALUES (?, ?)').run(name, color)
+  return db.prepare('SELECT * FROM tags WHERE id = ?').get(result.lastInsertRowid) as TagRow
+}
+
+export function updateTag(id: number, name: string, color: string): void {
+  db.prepare('UPDATE tags SET name = ?, color = ? WHERE id = ?').run(name, color, id)
+}
+
+export function deleteTag(id: number): void {
+  db.prepare('DELETE FROM tags WHERE id = ?').run(id)
+}
+
+export function getAllSpellTagAssignments(): SpellTagAssignment[] {
+  return db.prepare(`
+    SELECT st.spell_id, t.id, t.name, t.color
+    FROM spell_tags st
+    JOIN tags t ON st.tag_id = t.id
+    ORDER BY st.spell_id, t.name
+  `).all() as SpellTagAssignment[]
+}
+
+export function getTagsForSpell(spellId: number): TagRow[] {
+  return db.prepare(`
+    SELECT t.* FROM tags t
+    JOIN spell_tags st ON st.tag_id = t.id
+    WHERE st.spell_id = ?
+    ORDER BY t.name ASC
+  `).all(spellId) as TagRow[]
+}
+
+export function setSpellTag(spellId: number, tagId: number, add: boolean): void {
+  if (add) {
+    db.prepare('INSERT OR IGNORE INTO spell_tags (spell_id, tag_id) VALUES (?, ?)').run(spellId, tagId)
+  } else {
+    db.prepare('DELETE FROM spell_tags WHERE spell_id = ? AND tag_id = ?').run(spellId, tagId)
+  }
+}
+
+export function resetUserData(): void {
+  db.exec(`
+    DELETE FROM character_spells;
+    DELETE FROM characters;
+    DELETE FROM favorites;
+    UPDATE spells SET is_favorite = 0;
+    DELETE FROM spell_tags;
+    DELETE FROM tags;
+  `)
+  seedDefaultTags()
+}
+
+export interface ExportData {
+  version: string
+  exportedAt: string
+  favorites: string[]
+  characters: Array<{
+    name: string; class: string; level: number; tradition: string
+    spells: Array<{ spell: string; is_prepared: number }>
+  }>
+  tags: Array<{ name: string; color: string }>
+  spellTags: Array<{ spell: string; tag: string }>
+}
+
+export function exportUserData(): ExportData {
+  const favorites = (db.prepare('SELECT s.name FROM spells s JOIN favorites f ON s.id = f.spell_id ORDER BY f.added_at DESC').all() as { name: string }[]).map(r => r.name)
+  const chars = db.prepare('SELECT * FROM characters').all() as CharacterRow[]
+  const characters = chars.map(c => {
+    const spells = db.prepare(`
+      SELECT s.name as spell, cs.is_prepared FROM character_spells cs
+      JOIN spells s ON s.id = cs.spell_id
+      WHERE cs.character_id = ?`).all(c.id) as { spell: string; is_prepared: number }[]
+    return { name: c.name, class: c.class, level: c.level, tradition: c.tradition, spells }
+  })
+  const tags = (db.prepare('SELECT name, color FROM tags').all() as { name: string; color: string }[])
+  const spellTags = (db.prepare(`
+    SELECT s.name as spell, t.name as tag
+    FROM spell_tags st JOIN spells s ON s.id = st.spell_id JOIN tags t ON t.id = st.tag_id
+  `).all() as { spell: string; tag: string }[])
+  return { version: '1', exportedAt: new Date().toISOString(), favorites, characters, tags, spellTags }
+}
+
+export function importUserData(data: ExportData): void {
+  const importTx = db.transaction(() => {
+    // Tags
+    const insertTag = db.prepare('INSERT OR IGNORE INTO tags (name, color) VALUES (?, ?)')
+    for (const tag of data.tags ?? []) insertTag.run(tag.name, tag.color)
+
+    // Favorites
+    const getSpell = db.prepare('SELECT id FROM spells WHERE name = ?')
+    const insertFav = db.prepare('INSERT OR IGNORE INTO favorites (spell_id) VALUES (?)')
+    const setFav = db.prepare('UPDATE spells SET is_favorite = 1 WHERE id = ?')
+    for (const name of data.favorites ?? []) {
+      const spell = getSpell.get(name) as { id: number } | undefined
+      if (spell) { insertFav.run(spell.id); setFav.run(spell.id) }
+    }
+
+    // Characters + spells
+    const insertChar = db.prepare('INSERT INTO characters (name, class, level, tradition) VALUES (?, ?, ?, ?)')
+    const insertCs = db.prepare('INSERT OR IGNORE INTO character_spells (character_id, spell_id, is_prepared) VALUES (?, ?, ?)')
+    for (const c of data.characters ?? []) {
+      const res = insertChar.run(c.name, c.class, c.level, c.tradition)
+      for (const s of c.spells ?? []) {
+        const spell = getSpell.get(s.spell) as { id: number } | undefined
+        if (spell) insertCs.run(res.lastInsertRowid, spell.id, s.is_prepared)
+      }
+    }
+
+    // Spell tags
+    const getTag = db.prepare('SELECT id FROM tags WHERE name = ?')
+    const insertSt = db.prepare('INSERT OR IGNORE INTO spell_tags (spell_id, tag_id) VALUES (?, ?)')
+    for (const st of data.spellTags ?? []) {
+      const spell = getSpell.get(st.spell) as { id: number } | undefined
+      const tag = getTag.get(st.tag) as { id: number } | undefined
+      if (spell && tag) insertSt.run(spell.id, tag.id)
+    }
+  })
+  importTx()
 }
 
 export function getCharacterSpells(characterId: number): CharacterSpellRow[] {

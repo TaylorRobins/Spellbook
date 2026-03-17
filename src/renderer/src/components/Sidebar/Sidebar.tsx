@@ -1,7 +1,8 @@
 import wizardImg from '../../assets/wizard.png'
-import type { SidebarView, Tradition } from '../../types/spell'
+import type { SidebarView, Tradition, SpellTag } from '../../types/spell'
 import type { Character } from '../../types/character'
 import { CharacterSwitcher } from '../CharacterSwitcher/CharacterSwitcher'
+import { ErrorBoundary } from '../ErrorBoundary/ErrorBoundary'
 import styles from './Sidebar.module.css'
 
 interface SidebarProps {
@@ -13,7 +14,10 @@ interface SidebarProps {
   onNewCharacter: () => void
   onEditCharacter: () => void
   onDeleteCharacter: (id: number) => void
-  onOpenUpdateModal: () => void
+  tags: SpellTag[]
+  selectedTagIds: number[]
+  tagCounts: Record<number, number>
+  onTagToggle: (id: number) => void
 }
 
 const LEVELS = Array.from({ length: 11 }, (_, i) => i)
@@ -40,7 +44,7 @@ export function Sidebar({
   activeView, onViewChange,
   characters, activeCharacterId, onCharacterChange,
   onNewCharacter, onEditCharacter, onDeleteCharacter,
-  onOpenUpdateModal
+  tags, selectedTagIds, tagCounts, onTagToggle,
 }: SidebarProps): JSX.Element {
   return (
     <aside className={styles.sidebar}>
@@ -50,14 +54,16 @@ export function Sidebar({
         <span className={styles.titleRune}>✦</span>
       </div>
 
-      <CharacterSwitcher
-        characters={characters}
-        activeCharacterId={activeCharacterId}
-        onCharacterChange={onCharacterChange}
-        onNewCharacter={onNewCharacter}
-        onEditCharacter={onEditCharacter}
-        onDeleteCharacter={onDeleteCharacter}
-      />
+      <ErrorBoundary componentName="CharacterSwitcher">
+        <CharacterSwitcher
+          characters={characters}
+          activeCharacterId={activeCharacterId}
+          onCharacterChange={onCharacterChange}
+          onNewCharacter={onNewCharacter}
+          onEditCharacter={onEditCharacter}
+          onDeleteCharacter={onDeleteCharacter}
+        />
+      </ErrorBoundary>
 
       <nav className={styles.nav}>
         <button
@@ -102,6 +108,27 @@ export function Sidebar({
           </div>
         </div>
 
+        {tags.length > 0 && (
+          <div className={styles.section}>
+            <div className={styles.sectionLabel}>By Tag</div>
+            {tags.map((tag) => {
+              const active = selectedTagIds.includes(tag.id)
+              const count = tagCounts[tag.id] ?? 0
+              return (
+                <button
+                  key={tag.id}
+                  className={`${styles.tagItem} ${active ? styles.tagActive : ''}`}
+                  onClick={() => onTagToggle(tag.id)}
+                >
+                  <span className={styles.tagDot} style={{ background: tag.color }} />
+                  <span className={styles.tagName}>{tag.name}</span>
+                  {count > 0 && <span className={styles.tagCount}>{count}</span>}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
         <button
           className={`${styles.navItem} ${styles.favoritesItem} ${
             isActive(activeView, { type: 'spellbook' }) ? styles.active : ''
@@ -123,12 +150,13 @@ export function Sidebar({
         </button>
       </nav>
 
-      <div className={styles.tools}>
-        <button className={styles.toolBtn} onClick={onOpenUpdateModal} title="Download latest spells from Foundry VTT">
-          ↻ Update Spell Database
-        </button>
-        <button className={styles.toolBtn} onClick={() => window.api.checkForAppUpdate()} title="Check GitHub for a new app version">
-          ⬆ Check for App Updates
+      <div className={styles.settingsRow}>
+        <button
+          className={`${styles.settingsBtn} ${isActive(activeView, { type: 'settings' }) ? styles.settingsBtnActive : ''}`}
+          onClick={() => onViewChange({ type: 'settings' })}
+          title="Settings"
+        >
+          ⚙ Settings
         </button>
       </div>
 

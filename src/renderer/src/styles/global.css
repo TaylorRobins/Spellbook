@@ -18,7 +18,7 @@ body {
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
   -webkit-font-smoothing: antialiased;
-  font-size: 15px;
+  font-size: calc(15px * var(--font-scale));
   line-height: 1.5;
 }
 
@@ -59,4 +59,11 @@ input, select, textarea {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Manual animations-off class (mirrors prefers-reduced-motion) */
+.no-animations *, .no-animations *::before, .no-animations *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
 }

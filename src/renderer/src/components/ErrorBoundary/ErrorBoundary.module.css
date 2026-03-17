@@ -1,0 +1,114 @@
+.damagedScroll {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px 24px;
+  background: var(--color-parchment);
+  border: 1px solid var(--color-parchment-border);
+  border-radius: 2px;
+  text-align: center;
+  flex: 1;
+}
+
+.icon {
+  font-size: 28px;
+  color: var(--color-accent-gold-dim);
+  opacity: 0.6;
+}
+
+.title {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--color-parchment-text);
+}
+
+.message {
+  font-family: 'Crimson Text', serif;
+  font-size: 14px;
+  color: var(--color-parchment-text-muted);
+}
+
+.errorMsg {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: var(--color-parchment-text-muted);
+  background: rgba(44, 24, 16, 0.08);
+  border: 1px solid rgba(44, 24, 16, 0.15);
+  border-radius: 3px;
+  padding: 4px 10px;
+  max-width: 400px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.resetBtn {
+  margin-top: 4px;
+  padding: 5px 18px;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-parchment-text-muted);
+  border: 1px solid var(--color-parchment-border);
+  border-radius: 2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.resetBtn:hover {
+  color: var(--color-parchment-text);
+  border-color: var(--color-accent-gold-dim);
+}
+
+/* Full-screen app-level crash fallback */
+.appCrash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  height: 100vh;
+  background: var(--color-bg-primary);
+  text-align: center;
+  padding: 40px;
+}
+
+.appCrash .icon {
+  font-size: 40px;
+  color: var(--color-accent-gold-dim);
+}
+
+.appCrash .title {
+  font-family: 'Cinzel', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-heading);
+  letter-spacing: 0.08em;
+}
+
+.appCrash .message {
+  font-family: 'Crimson Text', serif;
+  font-size: 15px;
+  color: var(--color-text-secondary);
+}
+
+.reloadBtn {
+  margin-top: 8px;
+  padding: 8px 24px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-gold-bright);
+  border: 1px solid var(--color-accent-gold);
+  border-radius: 2px;
+  background: rgba(201, 168, 76, 0.08);
+  transition: background 0.15s;
+}
+
+.reloadBtn:hover {
+  background: rgba(201, 168, 76, 0.18);
+}

@@ -1,4 +1,4 @@
-import type { Spell } from '../../types/spell'
+import type { Spell, SpellTag } from '../../types/spell'
 import { TraditionBadge } from '../shared/TraditionBadge'
 import { LevelPip } from '../shared/LevelPip'
 import styles from './SpellCard.module.css'
@@ -13,6 +13,7 @@ interface SpellCardProps {
   hasActiveCharacter?: boolean
   onAddToSpellbook?: (id: number) => void
   onRemoveFromSpellbook?: (id: number) => void
+  spellTags?: SpellTag[]
 }
 
 export function SpellCard({
@@ -25,7 +26,10 @@ export function SpellCard({
   hasActiveCharacter,
   onAddToSpellbook,
   onRemoveFromSpellbook,
+  spellTags,
 }: SpellCardProps): JSX.Element {
+  const visibleTags = spellTags?.slice(0, 3) ?? []
+  const extraTags = (spellTags?.length ?? 0) - visibleTags.length
   const showSpellbookBtn = onAddToSpellbook !== undefined && hasActiveCharacter
 
   return (
@@ -66,6 +70,14 @@ export function SpellCard({
             ))}
           </div>
           <span className={styles.school}>{spell.school}</span>
+          {visibleTags.length > 0 && (
+            <div className={styles.tagDots}>
+              {visibleTags.map(t => (
+                <span key={t.id} className={styles.tagDot} style={{ background: t.color }} title={t.name} />
+              ))}
+              {extraTags > 0 && <span className={styles.tagExtra}>+{extraTags}</span>}
+            </div>
+          )}
           <button
             className={`${styles.favoriteBtn} ${spell.is_favorite ? styles.favorited : ''}`}
             onClick={(e) => {

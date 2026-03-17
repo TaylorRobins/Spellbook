@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react'
-import type { Spell } from '../../types/spell'
+import type { Spell, SpellTag } from '../../types/spell'
 import { SpellCard } from '../SpellCard/SpellCard'
 import styles from './SpellList.module.css'
 
@@ -15,6 +15,7 @@ interface SpellListProps {
   onRemoveFromSpellbook?: (id: number) => void
   focusedIndex?: number
   style?: React.CSSProperties
+  spellTagsById?: Record<number, SpellTag[]>
 }
 
 export function SpellList({
@@ -29,6 +30,7 @@ export function SpellList({
   onRemoveFromSpellbook,
   focusedIndex,
   style,
+  spellTagsById,
 }: SpellListProps): JSX.Element {
   const listRef = useRef<HTMLDivElement>(null)
 
@@ -81,6 +83,7 @@ export function SpellList({
           hasActiveCharacter={hasActiveCharacter}
           onAddToSpellbook={onAddToSpellbook}
           onRemoveFromSpellbook={onRemoveFromSpellbook}
+          spellTags={spellTagsById?.[spell.id]}
         />
       ))}
     </div>

@@ -158,3 +158,24 @@
 .spellbookBtn.inSpellbook {
   color: var(--color-accent-gold);
 }
+
+.tagDots {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.tagDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.tagExtra {
+  font-size: 9px;
+  color: var(--color-text-muted);
+  font-family: 'Cinzel', serif;
+}
